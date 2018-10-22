@@ -6,7 +6,8 @@ module.exports = {
 	apiPort: 2000,
 
 	// DB connection
-	connectionString: process.env.DATABASE_URL || 'postgres://evol:love@localhost:5432/Evolutility', 
+	connectionString: process.env.DATABASE_URL || 'postgres://postgres:xxxx@localhost:5432/Evolutility-test', 
+	//connectionString: process.env.DATABASE_URL || 'postgres://evol:love@localhost:5432/Evolutility', 
 	schema: 'evolutility',
 
 	// Pagination and maximum number of rows
