@@ -218,7 +218,6 @@ console.log(sql);
 
 if(sqlFile){
     var fId = new Date().toISOString().replace(/:/g,'')
-    //var fId = new Date().toISOString()
     fs.writeFile('evol-db-schema-'+fId+'.sql', sql, function(err){
         if (err){
             throw err;
@@ -236,8 +235,7 @@ dbConfig.max = 10; // max number of clients in the pool
 dbConfig.idleTimeoutMillis = 30000; // max client idle time before being closed
 var pool = new pg.Pool(dbConfig);
 pool.connect(function(err, client, done) {
-    console.log(err);
-    //console.log(sql);
+    console.log(sql);
     client.query(sql, function(err, data) {
         if(err){ 
             done();
