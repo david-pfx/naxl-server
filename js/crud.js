@@ -7,224 +7,95 @@
  * (c) 2018 Olivier Giulieri
  ********************************************************* */
 
+const nedb = require('nedb')
+
 const dico = require('./utils/dico'),
-    sqls = require('./utils/sql-select'),
-    query = require('./utils/query'),
     errors = require('./utils/errors.js'),
     logger = require('./utils/logger'),
-    config = require('../config.js');
+    config = require('../config.js')
 
-const schema = '"'+(config.schema || 'evolutility')+'"',
-    defaultPageSize = config.pageSize || 50,
-    lovSize = config.lovSize || 100;
+const dbpath = './nedb-data/'
+
+const defaultPageSize = config.pageSize || 50,
+    lovSize = config.lovSize || 100
 
 // - build the header row for CSV export
 const csvHeaderColumn = config.csvHeader || 'label'
 
 function fieldId(f){
-    if(csvHeaderColumn==='label'){
-        return f.label || f.id
-    }
-    return f.id
+    return (csvHeaderColumn === 'label') ? f.label || f.id : f.id
 }
 
 function csvHeader(fields){
     let h = {'id': 'ID'},
-        lovs = {};
+        lovs = {}
 
     fields.forEach((f) => {
         if(f.type==='lov'){
-            h[f.id] = fieldId(f)+' ID';
-            h[f.id+'_txt'] = fieldId(f);
+            h[f.id] = fieldId(f)+' ID'
+            h[f.id+'_txt'] = fieldId(f)
         }else{
-            h[f.id] = fieldId(f);
+            h[f.id] = fieldId(f)
         }
-    });
-    return h;
+    })
+    return h
 }
 
+// get model, check for error
+function getModel(entity) {
+    model = dico.getModel(entity)
+    if (!model) errors.badRequest(res, 'Invalid model: "' + entity + '".')
+    return model
+}
+
+// get db store for entity
+function getDb(entity) {
+    return new nedb({ filename: dbpath + entity + '.db', autoload: true })
+}
+
+// format and send result as CSV, single or set
+function sendResult(res, results, csv, single) {
+    var nbRecords = results.length; 
+    if(csv) {
+        if (!nbRecords) return null
+        results.unshift(csv);
+        logger.logCount(results.length || 0);
+        return res.csv(results)
+    }
+    if (single) {
+        logger.logCount(results.length || 0);
+        return res.json(results.length?results[0]:null);
+    }
+    res.setHeader('_count', nbRecords);
+    if(nbRecords && results[0]._full_count){
+        res.setHeader('_full_count', results[0]._full_count);
+    }else{
+        res.setHeader('_full_count', 0);
+    }
+    logger.logCount(results.length || 0);
+    return res.json(results);
+}
 
 // --------------------------------------------------------------------------------------
 // -----------------    GET MANY   ------------------------------------------------------
 // --------------------------------------------------------------------------------------
 
-// - returns SQL for query returning a set of records
-function sqlMany(m, req, allFields, wCount){
-    let fs = allFields ? m.fields : m.fields.filter(dico.fieldInMany),
-        sqlParams = [];
-        if(allFields && fs.length===0){
-            fs=allFields.slice(0, 5)
-        }
-    // ---- SELECTION
-    let sqlSel = 't1.id, '+sqls.select(fs, false, true);
-    dico.systemManyFields.forEach((f) => {
-        sqlSel += ', t1.'+f.column
-        if(f.type==='integer'){
-            sqlSel += '::integer'
-        }
-    })
-    const sqlFrom = m.schemaTable + ' AS t1' + sqls.sqlFromLOVs(fs, schema);
-
-    // ---- FILTERING
-    const sqlOperators = {
-        'eq': '=',
-        'ne': '<>',
-        'gt': '>',
-        'lt': '<',
-        'gte': '>=',
-        'lte': '<=',
-        'ct': ' ILIKE ',
-        'sw': ' ILIKE ',
-        'fw': ' ILIKE ',
-        'in': ' IN ',
-        '0': '=',
-        '1': '=',
-        'null': ' IS ',
-        'nn': ' IS '
-    };
-
-    var sqlWs = [];
-    for (var n in req.query){
-        if (req.query.hasOwnProperty(n)) {
-            var f = (n==='id') ? {column:'id'} : m.fieldsH[n];
-            if(f && ['select', 'filter', 'search', 'order', 'page', 'pageSize'].indexOf(f.column)<0){
-                var cs = req.query[n].split('.');
-                if(cs.length){
-                    var cond=cs[0];
-                    if(sqlOperators[cond]){
-                        if((cond==='eq' || cond==='ne') && dico.fieldIsText(f)){
-                            sqlParams.push(cs[1]);
-                            if(f.type==='text' || f.type==='textmultiline' || f.type==='html'){
-                                sqlWs.push('LOWER(t1."'+f.column+'")'+sqlOperators[cond]+'LOWER($'+sqlParams.length+')');
-                            }else{
-                                sqlWs.push('t1."'+f.column+'"'+sqlOperators[cond]+'$'+sqlParams.length);
-                            }
-                        }else{
-                            let w='t1."'+f.column+'"'+sqlOperators[cond];
-                            if(cond==='in' && (f.type==='lov' || f.type==='list')){
-                                sqlWs.push(w+'('+cs[1].split(',').map(li => {
-                                    sqlParams.push(li);
-                                    return '$'+sqlParams.length
-                                }).join(',')+')'); 
-                            }else if(cond==='0'){ // false
-                                sqlWs.push('('+w+'false OR t1."'+f.column+'" IS NULL)');
-                            }else if(cond==='1'){ // true
-                                sqlWs.push(w+'true');
-                            }else if(cond==='null'){ // empty        
-                                sqlWs.push(' NOT '+w+'NULL');
-                            }else{
-                                if(cond==='nct'){ // not contains
-                                    //TODO replace % in cs[1]
-                                    sqlParams.push('%'+cs[1]+'%');
-                                    sqlWs.push(' NOT '+w+'$'+sqlParams.length);
-                                }else{
-                                    if(cond==='sw'){ // start with
-                                        sqlParams.push(cs[1]+'%');
-                                    }else if(cond==='fw'){ // finishes with
-                                        sqlParams.push('%'+cs[1]);
-                                    }else if(cond==='ct'){ // contains
-                                        sqlParams.push('%'+cs[1]+'%');
-                                    }else{
-                                        sqlParams.push(cs[1]);
-                                    }
-                                    sqlWs.push(w+'$'+sqlParams.length);
-                                }
-                            }
-                        }
-                    }else{
-                        console.log('Invalid condition "'+cond+'"')
-                    }
-                }
-            }
-        }
-    }
-
-    // ---- SEARCHING
-    if(req.query.search){
-        // TODO: use fts
-        var paramSearch = false,
-            sqlWsSearch = [];
-
-        if(m.searchFields && Array.isArray(m.searchFields)){
-            logger.logObject('search fields', m.searchFields);
-            var sqlP='"'+sqlOperators.ct+'$'+(sqlParams.length+1);
-            m.searchFields.forEach(function(fid){
-                sqlWsSearch.push('t1."'+m.fieldsH[fid].column+sqlP);
-            });
-            sqlParams.push('%'+req.query.search.replace(/%/g, '\%')+'%');
-            sqlWs.push('('+sqlWsSearch.join(' OR ')+')');
-        }
-    }
-
-    // ---- RECORD COUNT (added to selection)
-    if(wCount){
-        if(sqlWs.length){
-            sqlSel += ',(SELECT count(*) FROM '+m.schemaTable+')::integer AS _full_count';
-        }else{
-            sqlSel += ',count(*) OVER()::integer AS _full_count';
-        }
-    }
-    
-    // ---- ORDERING
-    sqlOrder='';
-    var qOrder=req.query?req.query.order:null;
-    if(qOrder){
-        if(qOrder.indexOf(',')>-1){
-            var qOs=qOrder.split(',');
-            if(qOs){
-                sqlOrder+=qOs.map(qOs, function(qo){
-                    return sqls.sqlOrderFields(m, qo)
-                }).join(',');
-            }
-        }else{
-            sqlOrder+=sqls.sqlOrderFields(m, qOrder);
-        }
-    }else if(fs.length){
-        sqlOrder = '2 ASC';
-    }
-
-    // ---- LIMITING & PAGINATION
-    let offset=0,
-        qPage=req.query.page||0, 
-        qPageSize;
-
-    if(req.query.format==='csv'){
-        qPageSize = config.csvSize || 1000;
-    }else{
-        qPageSize = parseInt(req.query.pageSize || defaultPageSize, 10);
-        if(qPage){
-            offset = qPage*qPageSize;
-        }
-    }
-
-    return {
-        select: sqlSel,
-        from: sqlFrom,
-        where: sqlWs, // = array
-        //group: '',
-        order: sqlOrder,
-        limit: qPageSize,
-        offset: offset,
-        params: sqlParams
-    }
-}
-
 // - returns a set of records (filtered and sorted)
 function getMany(req, res) {
-    logger.logReq('GET MANY', req);
-    const mid = req.params.entity,
-        m = dico.getModel(mid);
-    
-    if(m){
-        const format = req.query.format || null,
-            isCSV = format==='csv',
-            sq = sqlMany(m, req, isCSV, !isCSV),
-            sql = query.sqlQuery(sq);
+    logger.logReq('GET MANY', req)
 
-        query.runQuery(res, sql, sq.params, false, format, isCSV ? csvHeader(m.fields) : null);
-    }else{
-        errors.badRequest(res, 'Invalid model: "'+mid+'".')
-    }
+    const entity = req.params.entity,
+        format = req.query.format || null,
+        model = getModel(entity)
+    if (!model) return
+    
+    const 
+        csv = (format==='csv') ? csvHeader(model.fields) : null,
+        db = getDb(entity)
+    db.find({}, function(err, docs) {
+        if (err) errors.badRequest(res, 'Nedb error: "' + err)
+        else sendResult(res, docs, csv, false)
+    })
 }
 
 // --------------------------------------------------------------------------------------
@@ -233,29 +104,19 @@ function getMany(req, res) {
 
 // - get one record by ID
 function getOne(req, res) {
-    logger.logReq('GET ONE', req);
+    logger.logReq('GET ONE', req)
 
-    const mid = req.params.entity,
-        m = dico.getModel(mid),
-        id = req.params.id;
-
-    if(m){
-        const sqlParams = [id]
-        let sql = 'SELECT t1.id, '+sqls.select(m.fields, m.collections, true)
-
-        dico.systemFields.forEach(function(f){
-            sql += ', t1.'+f.column
-        })
-        sql += ' FROM '+m.schemaTable+' AS t1'+sqls.sqlFromLOVs(m.fields, schema)+
-            ' WHERE t1.id=$1'+
-            ' LIMIT 1;';
-
-        query.runQuery(res, sql, sqlParams, true);        
-    }else{
-        errors.badRequest(res, 'Invalid model: "'+mid+'".')
-    }
+    const entity = req.params.entity,
+        id = req.params.id,
+        model = getModel(entity)
+    if (!model) return
+    
+    const db = getDb(entity)
+    db.find({ id: id }, function(err, docs) {
+        if (err) errors.badRequest(res, 'Nedb error: "' + err)
+        else sendResult(res, docs, null, true)
+    })
 }
-
 
 // --------------------------------------------------------------------------------------
 // -----------------    INSERT ONE   ----------------------------------------------------
@@ -264,20 +125,13 @@ function getOne(req, res) {
 // - insert a single record
 function insertOne(req, res) {
     // TODO: validation
-    logger.logReq('INSERT ONE', req);
+    logger.logReq('INSERT ONE', req)
 
-    const m = dico.getModel(req.params.entity),
-        q = sqls.namedValues(m, req, 'insert');
-
-    if(m && q.names.length){
-        const ps = q.names.map((n, idx) => '$'+(idx+1));
-        const sql = 'INSERT INTO '+m.schemaTable+
-            ' ("'+q.names.join('","')+'") values('+ps.join(',')+')'+
-            ' RETURNING id, '+sqls.select(m.fields, false, null, 'C')+';';
-
-        query.runQuery(res, sql, q.values, true);
-    }else{
-        errors.badRequest(res)
+    const entity = req.params.entity,
+        db = getDb(entity)
+    
+    if (db) {
+        db.insert(data)
     }
 }
 
@@ -289,21 +143,14 @@ function insertOne(req, res) {
 // - update a single record
 function updateOne(req, res) {
     // TODO: validation
-    logger.logReq('UPDATE ONE', req);
+    logger.logReq('UPDATE ONE', req)
 
-    const m = dico.getModel(req.params.entity),
+    const entity = req.params.entity,
         id = req.params.id,
-        q = sqls.namedValues(m, req, 'update');
-
-    if(m && id && q.names.length){
-        q.values.push(id);
-        let sql = 'UPDATE '+m.schemaTable+' AS t1 SET '+ q.names.join(',') + 
-            ' WHERE id=$'+q.values.length+
-            ' RETURNING id, '+sqls.select(m.fields, false, null, 'U')+';';
-
-        query.runQuery(res, sql, q.values, true);
-    }else{
-        errors.badRequest(res)
+        db = getDb(entity)
+    
+    if (db) {
+        db.update({ _id: id }, data)
     }
 }
 
@@ -314,19 +161,14 @@ function updateOne(req, res) {
 
 // - delete a single record
 function deleteOne(req, res) {
-    logger.logReq('DELETE ONE', req);
+    logger.logReq('DELETE ONE', req)
 
-    const m = dico.getModel(req.params.entity),
-        id = req.params.id;
-
-    if(m && id){
-        // SQL Query > Delete Data
-        var sql = 'DELETE FROM '+m.schemaTable+
-                ' WHERE id=$1 RETURNING id::integer AS id;';
-                
-        query.runQuery(res, sql, [id], true);
-    }else{
-        errors.badRequest(res)
+    const entity = req.params.entity,
+        id = req.params.id,
+        db = getDb(entity)
+    
+    if (db) {
+        db.remove({ _id: id })
     }
 }
 
@@ -337,38 +179,20 @@ function deleteOne(req, res) {
 
 // - returns list of possible values for a field (usually for dropdown)
 function lovOne(req, res) {
-    logger.logReq('LOV ONE', req);
+    logger.logReq('LOV ONE', req)
 
+    const entity = req.params.entity,
+        fid = req.params.field,
+        db = getDb(entity)
+    
+    if (db) {
+        // TODO
+    }
     const mid = req.params.entity,
         m = dico.getModel(mid),
         fid = req.params.field
-    let f = m.fieldsH[fid];
+    let f = m.fieldsH[fid]
 
-    if(m){
-        if(!f && fid===mid){
-            // -- if field id = entity id, then use the entity itself as the lov
-            f = {
-                id: 'entity',
-                lovcolumn: m.fields[0].column,
-                lovtable: m.table
-            }
-        }
-        if(f){
-            const col = f.lovcolumn||'name'
-            let sql = 'SELECT id, "'+col+'" as text'
-            
-            if(f.lovicon){
-                sql+=',icon'
-            }
-            sql+=' FROM '+schema+'."'+f.lovtable+
-                '" ORDER BY UPPER("'+col+'") ASC LIMIT '+lovSize+';';
-            query.runQuery(res, sql, null, false);
-        }else{
-            res.json(logger.errorMsg('Invalid field \''+fid+'\'.', 'lovOne'));
-        }
-    }else{
-        errors.badRequest(res)
-    }
 }
 
 
@@ -378,25 +202,18 @@ function lovOne(req, res) {
 
 // - returns sub-collection (nested in UI but relational in DB)
 function collecOne(req, res) {
-    logger.logReq('GET ONE-COLLEC', req);
+    logger.logReq('GET ONE-COLLEC', req)
 
-    const mid = req.params.entity
-        m = dico.getModel(mid),
-        collecId = req.params.collec,
-        collec = m.collecsH[collecId],
-        pId = parseInt(req.query.id, 10);
 
-    if(m && collec){
-        const sqlParams = [pId],
-            sql = 'SELECT t1.id, '+sqls.select(collec.fields)+
-                ' FROM '+schema+'."'+collec.table+'" AS t1'+
-                ' WHERE t1."'+collec.column+'"=$1'+
-                ' ORDER BY t1.id'+//t1.position, t1.id
-                ' LIMIT '+defaultPageSize+';';
+    const entity = req.params.entity,
+        fid = req.params.field,
+        fid = req.params.field,
+        db = getDb(entity)
 
-        query.runQuery(res, sql, sqlParams, false);        
-    }else{
-        errors.badRequest(res)
+    let f = m.fieldsH[fid]
+        
+    if (db) {
+        // TODO
     }
 }
 

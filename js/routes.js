@@ -13,8 +13,8 @@ const express = require('express'),
 	config = require('../config'),
 	apiPath = config.apiPath,
 	crud = require('./crud'),
-	stats = require('./stats'),
-	charts = require('./charts'),
+	stats = require('./sql-stats'),
+	charts = require('./sql-charts'),
 	info = require('./info');
 
 logger.ascii_art();

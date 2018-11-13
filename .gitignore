@@ -4,6 +4,7 @@ evol-db-*.sql
 
 node_modules
 bower_components
+nedb-data
 
 # Windows stuff
 Thumbs.db
