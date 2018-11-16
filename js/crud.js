@@ -44,7 +44,7 @@ function csvHeader(fields){
 // get model, check for error
 function getModel(entity) {
     model = dico.getModel(entity)
-    if (!model) errors.badRequest(res, 'Invalid model: "' + entity + '".')
+    if (!model) errors.badRequest(res, 'Invalid entity: "' + entity + '".')
     return model
 }
 
@@ -53,16 +53,38 @@ function getDb(entity) {
     return new nedb({ filename: dbpath + entity + '.db', autoload: true })
 }
 
+function lovFields(model) {
+    return model.fields.filter(f => f.type == 'lov')
+}
+
+// augment the result set by the addition of joined fields on lov tables
+function joinResult(res, results, format, fields) {
+    if (fields.length == 0) return sendResult(res, results, format)
+    let field = fields.shift()
+    let txtfld = field.id + '_txt'
+    let db = getDb(field.lovtable)
+    db.find({ }, (err, docs) => {
+        //console.log(err, docs)
+        if (err) return errors.badRequest(res, 'db error: ' + err)
+        for (let rowx = 0; rowx < results.length; rowx++) {
+            let expansion = docs.find(r => r._id == results[rowx][field.id])
+            if (expansion) results[rowx][txtfld] = expansion.text
+        }
+        //console.log(results[0])
+        joinResult(res, results, format, fields)
+    })
+}
+
 // format and send result as CSV, single or set
-function sendResult(res, results, csv, single) {
+function sendResult(res, results, format) {
     var nbRecords = results.length; 
-    if(csv) {
+    if(format.csv) {
         if (!nbRecords) return null
-        results.unshift(csv);
+        results.unshift(format.csv);
         logger.logCount(results.length || 0);
         return res.csv(results)
     }
-    if (single) {
+    if (format.single) {
         logger.logCount(results.length || 0);
         return res.json(results.length?results[0]:null);
     }
@@ -88,13 +110,15 @@ function getMany(req, res) {
         format = req.query.format || null,
         model = getModel(entity)
     if (!model) return
+
+    let orderby = {}
+        orderby[model.fields[0].id] = 1
     
-    const 
-        csv = (format==='csv') ? csvHeader(model.fields) : null,
+    let csvheader = (format==='csv') ? csvHeader(model.fields) : null,
         db = getDb(entity)
-    db.find({}, function(err, docs) {
-        if (err) errors.badRequest(res, 'Nedb error: "' + err)
-        else sendResult(res, docs, csv, false)
+    db.find({}).sort(orderby).exec(function(err, docs) {
+        if (err) return errors.badRequest(res, 'db error: ' + err)
+        joinResult(res, docs, { csv: csvheader , single: false }, lovFields(model))
     })
 }
 
@@ -107,14 +131,14 @@ function getOne(req, res) {
     logger.logReq('GET ONE', req)
 
     const entity = req.params.entity,
-        id = req.params.id,
+        id = +req.params.id,
         model = getModel(entity)
     if (!model) return
-    
+
     const db = getDb(entity)
-    db.find({ id: id }, function(err, docs) {
-        if (err) errors.badRequest(res, 'Nedb error: "' + err)
-        else sendResult(res, docs, null, true)
+    db.find({ _id: id }, function(err, docs) {
+        if (err) return errors.badRequest(res, 'db error: ' + err)
+        joinResult(res, docs, { single: true }, lovFields(model))
     })
 }
 
@@ -124,7 +148,6 @@ function getOne(req, res) {
 
 // - insert a single record
 function insertOne(req, res) {
-    // TODO: validation
     logger.logReq('INSERT ONE', req)
 
     const entity = req.params.entity,
@@ -142,7 +165,6 @@ function insertOne(req, res) {
 
 // - update a single record
 function updateOne(req, res) {
-    // TODO: validation
     logger.logReq('UPDATE ONE', req)
 
     const entity = req.params.entity,
@@ -183,16 +205,19 @@ function lovOne(req, res) {
 
     const entity = req.params.entity,
         fid = req.params.field,
-        db = getDb(entity)
-    
-    if (db) {
-        // TODO
-    }
-    const mid = req.params.entity,
-        m = dico.getModel(mid),
-        fid = req.params.field
-    let f = m.fieldsH[fid]
+        model = getModel(entity)
+    if (!model) return
 
+    let field = model.fields.find(function(f) {
+        return f.id === fid
+    })
+    if (!field) return errors.badRequest(res, 'Unknown field: ' + fid)
+
+    let db = getDb(field.lovtable)
+    db.find({ }, function(err, docs) {
+        if (err) errors.badRequest(res, 'db error: ' + err)
+        else sendResult(res, docs, { })
+    })
 }
 
 

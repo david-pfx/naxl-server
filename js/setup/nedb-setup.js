@@ -8,23 +8,33 @@
 
 var nedb = require('nedb')
 
+var models = require('../../models/all_models');
 var modelsdata = require('../../models/data/all_modelsdata');
 const dbpath = './nedb-data/'
 
 for (let entity in modelsdata) {
-    //console.log(entity)
-    var db = new nedb({ filename: dbpath + entity + '.db', autoload: true })
-    // db.loadDatabase(function(err) {
-    //     console.log('Error: ', err)
-    // })
-    db.remove({}, { multi: true })
-    db.persistence.compactDatafile()
-    let data = modelsdata[entity]
-    console.log(entity, 'rows:', data.length)
-    for (var i = 0; i < data.length; i++) {
-        data[i]['_id'] = i
-        db.insert(data[i], function(err, doc) {
-            //console.log(doc)
-        })
+    writeTable(entity, modelsdata[entity]);
+
+    let model = models[entity]
+    for (var i = 0; i < model.fields.length; i++) {
+        let field = model.fields[i]
+        if (field.type === 'lov' && field.list) {
+            writeTable(field.lovtable, field.list);
+        }
     }
 }
+
+// write set of rows as table
+function writeTable(name, data) {
+    console.log('Writing', name, 'rows', data.length);
+    var db = new nedb({ filename: dbpath + name + '.db', autoload: true })
+    db.remove({}, { multi: true })
+    db.persistence.compactDatafile()
+    for (var i = 0; i < data.length; i++) {
+        // Overwrite id, store as _id for nedb indexing
+        data[i]._id = data[i].id = i + 1;
+        //data[i]._id = (data[i]['id']) ? +data[i]['id'] : i + 1;
+        db.insert(data[i], function (err, doc) { });
+    }
+}
+

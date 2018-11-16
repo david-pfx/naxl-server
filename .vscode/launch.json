@@ -7,8 +7,13 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Run tests",
             "program": "${workspaceFolder}\\test\\index"
+        },{
+            "type": "node",
+            "request": "launch",
+            "name": "Run setup",
+            "program": "${workspaceFolder}\\js\\setup\\nedb-setup"
         }
     ]
 }
