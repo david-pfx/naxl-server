@@ -13,9 +13,9 @@ var modelsdata = require('../../models/data/all_modelsdata');
 const dbpath = './nedb-data/'
 
 for (let entity in modelsdata) {
-    writeTable(entity, modelsdata[entity]);
-
     let model = models[entity]
+    writeTable(model.table || entity, modelsdata[entity]);
+
     for (var i = 0; i < model.fields.length; i++) {
         let field = model.fields[i]
         if (field.type === 'lov' && field.list) {
@@ -33,7 +33,6 @@ function writeTable(name, data) {
     for (var i = 0; i < data.length; i++) {
         // Overwrite id, store as _id for nedb indexing
         data[i]._id = data[i].id = i + 1;
-        //data[i]._id = (data[i]['id']) ? +data[i]['id'] : i + 1;
         db.insert(data[i], function (err, doc) { });
     }
 }

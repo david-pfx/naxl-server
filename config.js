@@ -1,9 +1,13 @@
+// Configuration file for server
+
+// make port settable
+let setport = process.env.APIPORT || '2000'
 
 module.exports = {
 
 	// Path to REST API
 	apiPath: '/api/v1/',
-	apiPort: 2002,
+	apiPort: setport,
 	//apiPort: 2000,
 
 	// DB connection
