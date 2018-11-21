@@ -26,6 +26,19 @@ function fieldId(f){
     return (csvHeaderColumn === 'label') ? f.label || f.id : f.id
 }
 
+// convert a lookup into a dictionary
+function lookupDict(lookup) {
+    let dict = {}
+    lookup.forEach(r => {
+        dict[r.id] = r.name || r.text
+    })
+    return dict
+}
+
+function lovFields(model) {
+    return model.fields.filter(f => f.type == 'lov')
+}
+
 function csvHeader(fields){
     let h = {'id': 'ID'},
         lovs = {}
@@ -42,24 +55,65 @@ function csvHeader(fields){
 }
 
 // get model, check for error
-function getModel(res, entity) {
+function getModel(entity) {
     model = dico.getModel(entity)
-    if (!model) errors.badRequest(res, 'Invalid entity: "' + entity + '".')
+    if (!model) return { error: 'Invalid entity: "' + entity + '".' }
     return model
 }
 
-function getCollection(res, model, name) {
-    if (!model.collecsH[name]) errors.badRequest(res, 'Invalid collection: "' + name + '".')
+function getCollection(model, name) {
+    if (!model.collecsH[name]) return { error: 'Invalid collection: "' + name + '".' }
     return model.collecsH[name]
 }
 
-// get db store for entity
-function getDb(name) {
-    return new nedb({ filename: dbpath + name + '.db', autoload: true })
+// get field, check for error
+function getField(model, name) {
+    let field = model.fields.find(f => f.id == name)
+    if (!field) return { error: 'Invalid field: "' + name + '".' }
+    return field
 }
 
-function lovFields(model) {
-    return model.fields.filter(f => f.type == 'lov')
+// cache for db handles
+let dbCache = {}
+
+// return a bad request error and clear db handle cache
+function sendError(res, msg) {
+    dbCache = {}
+    errors.badRequest(res, msg)
+}
+
+// get db store for entity
+// cache and reuse db handle
+function getDb(name) {
+    if (dbCache[name]) {
+        dbCache[name].use++
+        return dbCache[name].db
+    }
+    let db = new nedb({ filename: dbpath + name + '.db' })
+    db.loadDatabase(err => { if (err) console.log(err) })
+    dbCache[name] = { db: db, use: 1 }
+    return db
+}
+
+function ungetDb(name) {
+    if (--dbCache[name].use <= 0) 
+        delete dbCache[name]
+}
+
+// parse somefield.asc, into { somefield: 1, }
+// BUG: fields in object are not ordered
+function orderBy(model, order) {
+    orderby = { }
+    if (!order) orderby[model.fields[0].id] = 1
+    else {
+        order.split(',').forEach(s => {
+            let ss = s.split('.')
+            if (ss.length == 2) 
+                orderby[ss[0]] = (ss[1] == 'desc') ? -1 : 1
+            else orderby[ss] = 1
+        })
+    }
+    return orderby
 }
 
 // augment the result set by the addition of joined fields on lov tables
@@ -73,13 +127,41 @@ function joinResult(res, results, format, fields) {
     console.log('join', field.lovtable, field.id, txtfld)
     let db = getDb(field.lovtable)
     db.find({ }, (err, docs) => {
-        if (err) return errors.badRequest(res, 'db error: ' + err)
-        for (let rowx = 0; rowx < results.length; rowx++) {
-            let lookup = docs.find(r => r._id == results[rowx][field.id])
-            if (lookup) results[rowx][txtfld] = lookup.name || lookup.text
-        }
+        ungetDb(field.lovtable)
+        if (err) return sendError(res, 'db error: ' + err)
+        join(results, docs, field, txtfld)
         joinResult(res, results, format, fields)
     })
+}
+
+// add new field from lookup to data 
+function join(data, lookup, field, txtfld) {
+    var dict = lookupDict(lookup)
+    data.forEach(row => {
+        row[txtfld] = dict[row[field.id]] || row[field.id]
+    })
+}
+
+// create grouping of data on given field using labels if supplied
+function groupResult(data, field, labels) {
+    let groups = {};
+    data.forEach(row => {
+        let value = row[field.id];
+        if (typeof value == 'undefined') value = 'Unknown'
+         groups[value] = (groups[value]) ? groups[value] + 1 : 1;
+    });
+    console.log('groups', groups);
+    let result = [], i = 1;
+    for (let g in groups) {
+        result.push({ 
+            id: i++, 
+            label: (labels && labels[g]) ? labels[g] : g, 
+            value: groups[g] 
+        });
+    }
+    result.sort((a, b) => { return a.label < b.label ? -1 : 1 })
+    console.log('result', result);
+    return result;
 }
 
 // format and send result as CSV, single or set
@@ -113,24 +195,24 @@ function getMany(req, res) {
 
     const entity = req.params.entity,
         format = req.query.format || null,
-        model = getModel(res, entity)
-    if (!model) return
+        order = req.query.order || null,
+        model = getModel(entity)
+    if (model.error) return sendError(res, model.error)
 
-    //let orderby = { [orderby[model.fields[0].id]]: 1 }
-     let orderby = {}
-         orderby[model.fields[0].id] = 1
-    console.log('get all', model.table || entity, 'order by', orderby)
+    let orderby = orderBy(model, order)
+    console.log('get all', table, 'order by', orderby)
     
     let csvheader = (format==='csv') ? csvHeader(model.fields) : null,
-        db = getDb(model.table || entity),
+        db = getDb(table),
         total_count = 0
     db.count({}, function(err, n) {
-        if (err) return errors.badRequest(res, 'db error: ' + err)
+        ungetDb(table)
+        if (err) return sendError(res, 'db error: ' + err)
         total_count = n
     })
     // TODO: make sort case-insensitive
-    db.find({}).sort(orderby).exec(function(err, docs) {
-        if (err) return errors.badRequest(res, 'db error: ' + err)
+    db.find({}).sort(orderby).exec((err, docs) => {
+        if (err) return sendError(res, 'db error: ' + err)
         joinResult(res, docs, { csv: csvheader , single: false, count: total_count }, lovFields(model))
     })
 }
@@ -145,13 +227,15 @@ function getOne(req, res) {
 
     const entity = req.params.entity,
         id = +req.params.id,
-        model = getModel(res, entity)
-    if (!model) return
+        model = getModel(entity),
+        table = model.table || entity
+    if (model.error) return sendError(res, model.error)
 
-    console.log('get one', model.table || entity)
-    const db = getDb(model.table || entity)
-    db.find({ _id: id }, function(err, docs) {
-        if (err) return errors.badRequest(res, 'db error: ' + err)
+    console.log('get one', table)
+    let db = getDb(table)
+    db.find({ _id: id }, (err, docs) => {
+        ungetDb(table)
+        if (err) return sendError(res, 'db error: ' + err)
         joinResult(res, docs, { single: true }, lovFields(model))
     })
 }
@@ -165,10 +249,11 @@ function insertOne(req, res) {
     logger.logReq('INSERT ONE', req)
 
     const entity = req.params.entity,
-        model = getModel(res, entity)
-    if (!model) return
+        model = getModel(entity),
+        table = model.table || entity
+    if (model.error) return sendError(res, model.error)
 
-    db = getDb(model.table || entity)
+    let db = getDb(table)
     
     if (db) {
         db.insert(data)
@@ -186,10 +271,11 @@ function updateOne(req, res) {
 
     const entity = req.params.entity,
         id = req.params.id,
-        model = getModel(res, entity)
-    if (!model) return
+        model = getModel(entity),
+        table = model.table || entity
+    if (model.error) return sendError(res, model.error)
 
-    db = getDb(model.table || entity)
+    let db = getDb(table)
     if (db) {
         db.update({ _id: id }, data)
     }
@@ -206,10 +292,11 @@ function deleteOne(req, res) {
 
     const entity = req.params.entity,
         id = req.params.id,
-        model = getModel(res, entity)
-    if (!model) return
+        model = getModel(entity),
+        table = model.table || entity
+    if (model.error) return sendError(res, model.error)
     
-    db = getDb(model.table || entity)
+    let db = getDb(table)
     
     if (db) {
         db.remove({ _id: id })
@@ -227,16 +314,17 @@ function lovOne(req, res) {
 
     const entity = req.params.entity,
         fid = req.params.field,
-        model = getModel(res, entity)
-    if (!model) return
+        model = getModel(entity)
+    if (model.error) return sendError(res, model.error)
 
-    let field = model.fields.find(function(f) { return f.id === fid })
-    if (!field) return errors.badRequest(res, 'Unknown field: ' + fid)
+    let field = model.fields.find(f => { return f.id === fid })
+    if (!field) return sendError(res, 'Unknown field: ' + fid)
     console.log('get all', field.lovtable)
 
     let db = getDb(field.lovtable)
-    db.find({ }, function(err, docs) {
-        if (err) errors.badRequest(res, 'db error: ' + err)
+    db.find({ }, (err, docs) => {
+        ungetDb(field.lovtable)
+        if (err) sendError(res, 'db error: ' + err)
         else sendResult(res, docs, { })
     })
 }
@@ -253,22 +341,58 @@ function collecOne(req, res) {
     const entity = req.params.entity,
         collecId = req.params.collec,
         pId = parseInt(req.query.id, 10),
-        model = getModel(res, entity),
-        collec = getCollection(res, model, collecId)
-    if (!model || !collec) return
+        model = getModel(entity)
+    if (model.error) return sendError(res, model.error)
+    const collec = getCollection(model, collecId)
+    if (collec.error) return sendError(res, collec.error)
 
-//    let where = { [collec.column]: pId }, 
-//        orderby = { [orderby[collec.fields[0].id]]: 1 }
-    let where = {}, 
-        orderby = {}
-    where[collec.column] = pId
-    orderby[collec.fields[0].id] = 1
+    let where = { [collec.column]: pId }, 
+        orderby = { [collec.fields[0].id]: 1 }
     console.log('get', collec.table || entity, 'where', where, 'order by', orderby)
     
-    db = getDb(collec.table)
-    db.find(where).sort(orderby).exec(function(err, docs) {
-        if (err) return errors.badRequest(res, 'db error: ' + err)
+    let db = getDb(collec.table)
+    db.find(where).sort(orderby).exec((err, docs) => {
+        ungetDb(collec.table)
+        if (err) return sendError(res, 'db error: ' + err)
         sendResult(res, docs, { })
+    })
+}
+
+// --------------------------------------------------------------------------------------
+// -----------------    CHARRTS   -------------------------------------------------------
+// --------------------------------------------------------------------------------------
+
+// return group and count for charting
+function chartField(req, res) {
+    logger.logReq('GET CHART', req);
+
+    const entity = req.params.entity,
+        model = getModel(entity),
+        field = getField(model, req.params.field),
+        table = model.table || entity
+    if (model.error) return sendError(res, model.error)
+    if (field.error) return sendError(res, field.error)
+
+    console.log('get', table, 'field:', field.id)
+    
+    let db = getDb(table)
+    db.find({ }, (err, docs) => {
+        ungetDb(table)
+        console.log(entity, err, docs.length)
+        if (err) return sendError(res, 'db error: ' + err)
+        if (field.type == 'lov') {
+            let db2 = getDb(field.lovtable)
+            db2.find({ }, (err, lov) => {
+                ungetDb(field.lovtable)
+                if (err) return sendError(res, 'db error: ' + err)
+                let result = groupResult(docs, field, lookupDict(lov));
+                sendResult(res, result, { })
+            })
+        } else {
+            const boolookup = { false: 'No', true: 'Yes'}
+            let result = groupResult(docs, field, (field.type == 'boolean') ? boolookup : null);
+            sendResult(res, result, { })
+        }
     })
 }
 
@@ -289,6 +413,8 @@ module.exports = {
     getCollec: collecOne,
 
     // - LOVs (for dropdowns)
-    lovOne: lovOne
+    lovOne: lovOne,
+
+    chartField: chartField
 
 }

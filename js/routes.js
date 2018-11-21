@@ -14,7 +14,6 @@ const express = require('express'),
 	apiPath = config.apiPath,
 	crud = require('./crud'),
 	stats = require('./sql-stats'),
-	charts = require('./sql-charts'),
 	info = require('./info');
 
 logger.ascii_art();
@@ -56,7 +55,7 @@ router.get(apiPath+':entity/lov/:field', crud.lovOne);
 router.get(apiPath+':entity/collec/:collec', crud.getCollec);
 
 // ======  GET CHARTS ====================================
-router.get(apiPath+':entity/chart/:field', charts.chartField);
+router.get(apiPath+':entity/chart/:field', crud.chartField);
 
 
 module.exports = router;

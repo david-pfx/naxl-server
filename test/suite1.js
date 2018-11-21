@@ -1,0 +1,40 @@
+// suite1.js -- unit testing
+
+var request = require('supertest')
+var test = require('tape')
+
+var app = require('../app')
+
+test('header', t => {
+    request(app)
+        .get('/api/v1/todo')
+        .expect(200)
+        .expect('Content-Type', /json/)
+        .expect('_full_count', "21")
+        .end((err, res) => {
+            t.error(err, 'no error')
+            t.end()
+        })
+    })
+
+    test('header', t => {
+        request(app)
+            .get('/api/v1/xxx')
+            .expect(400)
+            .end((err, res) => {
+                t.error(err, 'no error')
+                t.end()
+            })
+        })
+    
+        test('header', t => {
+            request(app)
+                .get('/api/v1/winecellar/collec/xxx')
+                .expect(400)
+                .end((err, res) => {
+                    t.error(err, 'no error')
+                    t.end()
+                })
+            })
+        
+        
