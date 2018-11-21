@@ -196,7 +196,8 @@ function getMany(req, res) {
     const entity = req.params.entity,
         format = req.query.format || null,
         order = req.query.order || null,
-        model = getModel(entity)
+        model = getModel(entity),
+        table = model.table || entity
     if (model.error) return sendError(res, model.error)
 
     let orderby = orderBy(model, order)

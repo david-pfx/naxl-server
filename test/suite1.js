@@ -5,7 +5,7 @@ var test = require('tape')
 
 var app = require('../app')
 
-test('header', t => {
+test('header 200', t => {
     request(app)
         .get('/api/v1/todo')
         .expect(200)
@@ -15,26 +15,26 @@ test('header', t => {
             t.error(err, 'no error')
             t.end()
         })
-    })
+})
 
-    test('header', t => {
-        request(app)
-            .get('/api/v1/xxx')
-            .expect(400)
-            .end((err, res) => {
-                t.error(err, 'no error')
-                t.end()
-            })
+test('header 400', t => {
+    request(app)
+        .get('/api/v1/xxx')
+        .expect(400)
+        .end((err, res) => {
+            t.error(err, 'no error')
+            t.end()
         })
-    
-        test('header', t => {
-            request(app)
-                .get('/api/v1/winecellar/collec/xxx')
-                .expect(400)
-                .end((err, res) => {
-                    t.error(err, 'no error')
-                    t.end()
-                })
-            })
+})
+
+test('header 400', t => {
+    request(app)
+        .get('/api/v1/winecellar/collec/xxx')
+        .expect(400)
+        .end((err, res) => {
+            t.error(err, 'no error')
+            t.end()
+        })
+})
         
         
