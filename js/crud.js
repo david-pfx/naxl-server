@@ -160,7 +160,7 @@ function groupResult(data, field, labels) {
         });
     }
     result.sort((a, b) => { return a.label < b.label ? -1 : 1 })
-    console.log('result', result);
+    //console.log('result', result);
     return result;
 }
 
@@ -386,17 +386,69 @@ function chartField(req, res) {
             db2.find({ }, (err, lov) => {
                 ungetDb(field.lovtable)
                 if (err) return sendError(res, 'db error: ' + err)
-                let result = groupResult(docs, field, lookupDict(lov));
-                sendResult(res, result, { })
+                let results = groupResult(docs, field, lookupDict(lov));
+                sendResult(res, results, { })
             })
         } else {
             const boolookup = { false: 'No', true: 'Yes'}
-            let result = groupResult(docs, field, (field.type == 'boolean') ? boolookup : null);
-            sendResult(res, result, { })
+            let results = groupResult(docs, field, (field.type == 'boolean') ? boolookup : null);
+            sendResult(res, results, { })
         }
     })
 }
 
+// - returns a summary on a single table
+function statsMany(req, res) {
+    logger.logReq('GET STATS', req);
+
+    const entity = req.params.entity,
+        model = getModel(entity),
+        table = model.table || entity
+    if (model.error) return sendError(res, model.error)
+
+    console.log('get stats', table)
+    
+    let db = getDb(table)
+    db.find({ }, (err, docs) => {
+        ungetDb(table)
+        let result = { count: docs.length }
+        model.fields.forEach(f => {
+            if (dico.fieldIsNumeric(f)) {
+                if (!dico.fieldIsDateOrTime(f)) {
+                    let sum = docs.reduce((acc, row) => { 
+                        return acc + (row[f.id] || 0)
+                    }, 0)
+                    let count = docs.reduce((acc, row) => { 
+                        return acc + (row[f.id] ? 1 : 0)
+                    }, 0)
+                    result[f.id + '_avg'] = sum / count
+                    if (f.type == 'money' || f.type == 'integer')
+                        result[f.id + '_sum'] = sum
+                }
+                result[f.id + '_min'] = docs.reduce((acc, row) => { 
+                    return typeof row[f.id] == 'undefined' ? acc
+                        : (acc == null || row[f.id] < acc) ? row[f.id] : acc
+                }, null)
+                result[f.id + '_max'] = docs.reduce((acc, row) => { 
+                    return typeof row[f.id] == 'undefined' ? acc
+                        : (acc == null || row[f.id] > acc) ? row[f.id] : acc
+                }, null)
+            }
+        })
+        if(config.wTimestamp){
+            result.u_date_max = docs.reduce((acc, row) => { 
+                return acc > row.u_date ? acc : row.u_date
+            }, docs[0].u_date)
+        }
+        if(config.wComments){
+            result.nb_comments = docs.reduce((acc, row) => { 
+                return acc + row.nb_comments
+            }, 0)
+        }
+        //console.log('result:', result)
+        sendResult(res, [ result ], { })
+    })
+}
 
 // --------------------------------------------------------------------------------------
 // --------------------------------------------------------------------------------------
@@ -416,6 +468,7 @@ module.exports = {
     // - LOVs (for dropdowns)
     lovOne: lovOne,
 
-    chartField: chartField
+    chartField: chartField,
+    statsMany: statsMany
 
 }

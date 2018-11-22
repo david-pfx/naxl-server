@@ -13,7 +13,6 @@ const express = require('express'),
 	config = require('../config'),
 	apiPath = config.apiPath,
 	crud = require('./crud'),
-	stats = require('./sql-stats'),
 	info = require('./info');
 
 logger.ascii_art();
@@ -34,7 +33,8 @@ if(config.apiInfo){
 router.get(apiPath+'version', info.version);
 
 // ======  GET STATS ====================================
-router.get(apiPath+':entity/stats', stats.numbers);
+router.get(apiPath+':entity/stats', crud.statsMany);
+//router.get(apiPath+':entity/stats', stats.numbers);
 
 // ======  CRUD ====================================
 // -  GET MANY ------------------------------------
