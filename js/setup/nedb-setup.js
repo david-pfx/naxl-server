@@ -35,5 +35,6 @@ function writeTable(name, data) {
         data[i]._id = data[i].id = i + 1;
         db.insert(data[i], function (err, doc) { });
     }
+    db.persistence.compactDatafile()
 }
 

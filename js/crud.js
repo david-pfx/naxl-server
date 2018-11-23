@@ -116,6 +116,16 @@ function orderBy(model, order) {
     return orderby
 }
 
+// prepare a record for insert or update
+function prepareRecord(data, id, model) {
+    data.id = data._id = id
+    model.fields.forEach(f => {
+        if (f.type == 'formula')
+            delete data[f.id]
+    })
+    return data
+}
+
 // augment the result set by the addition of joined fields on lov tables
 // look up value in this field on lovtable._id
 // replace with lovtable.name (normal tables) or lovtable.text (lov tables)
@@ -255,12 +265,20 @@ function insertOne(req, res) {
     if (model.error) return sendError(res, model.error)
 
     let db = getDb(table)
-    
-    if (db) {
-        db.insert(data)
-    }
+    db.find({ }, (err, docs) => {
+        if (err) return sendError(res, 'db error: ' + err)
+        let id = docs.reduce((acc, row) => { 
+            return (row._id > acc) ? row._id : acc
+        }, 0)
+        let record = prepareRecord(req.body, id + 1, model);
+        db.insert(record, (err, docs) => {
+            ungetDb(table)
+            if (err) return sendError(res, 'db error: ' + err)
+            console.log('new:', docs)
+            sendResult(res, [{ id: docs._id }], { single: true })
+        })
+    })
 }
-
 
 // --------------------------------------------------------------------------------------
 // -----------------    UPDATE ONE    ---------------------------------------------------
@@ -271,15 +289,18 @@ function updateOne(req, res) {
     logger.logReq('UPDATE ONE', req)
 
     const entity = req.params.entity,
-        id = req.params.id,
+        id = +req.params.id,
         model = getModel(entity),
         table = model.table || entity
     if (model.error) return sendError(res, model.error)
 
+    let record = prepareRecord(req.body, id, model);
     let db = getDb(table)
-    if (db) {
-        db.update({ _id: id }, data)
-    }
+    db.update({ _id: id }, record, (err, num) => {
+        ungetDb(table)
+        if (err) return sendError(res, 'db error: ' + err)
+        sendResult(res, [{ id: id }], { single: true })
+    })
 }
 
 
@@ -292,16 +313,17 @@ function deleteOne(req, res) {
     logger.logReq('DELETE ONE', req)
 
     const entity = req.params.entity,
-        id = req.params.id,
+        id = +req.params.id,
         model = getModel(entity),
         table = model.table || entity
     if (model.error) return sendError(res, model.error)
     
     let db = getDb(table)
-    
-    if (db) {
-        db.remove({ _id: id })
-    }
+    db.remove({ _id: id }, {}, (err, num) => {
+        ungetDb(table)
+        if (err) return sendError(res, 'db error: ' + err)
+        sendResult(res, [{ id: id }], { single: true })
+    })
 }
 
 
