@@ -1,4 +1,4 @@
-// suite1.js -- unit testing
+// suite1.js -- testing stuff that fails
 
 var request = require('supertest')
 var test = require('tape')
