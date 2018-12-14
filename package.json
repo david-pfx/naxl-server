@@ -1,6 +1,6 @@
 {
   "name": "evolutility-server-node",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "RESTful Micro-ORM for CRUD and more, using Node.js, Express, and Postgres.",
   "license": "MIT",
   "homepage": "https://github.com/evoluteur/evolutility-server-node",
@@ -14,20 +14,22 @@
     "start": "supervisor ./bin/www"
   },
   "keywords": [
-    "REST",
+    "low code",
+    "CRUD",
     "model-driven",
     "MDA",
-    "mda",
+    "REST",
+    "platform",
     "metadata",
     "database",
+    "nodejs",
+    "ORM",
+    "SQL",
+    "generator",
     "express",
     "postgres",
-    "node",
-    "NodeJS",
-    "low-code",
     "javascript",
-    "ORM",
-    "CRUD"
+    "DRY"
   ],
   "dependencies": {
     "express": "~4.16.3",
