@@ -206,11 +206,11 @@ function getMany(req, res) {
     const entity = req.params.entity,
         format = req.query.format || null,
         order = req.query.order || null,
-        model = getModel(entity),
-        table = model.table || entity
+        model = getModel(entity)
     if (model.error) return sendError(res, model.error)
 
-    let orderby = orderBy(model, order)
+    let table = model.table || entity,
+        orderby = orderBy(model, order)
     console.log('get all', table, 'order by', orderby)
     
     let csvheader = (format==='csv') ? csvHeader(model.fields) : null,

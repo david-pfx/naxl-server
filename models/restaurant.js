@@ -36,78 +36,67 @@ module.exports = {
     fields:[
         {
             type: 'text', id: 'name',
-            column: 'name',
             label: 'Name',
             required: true, width: 62, inMany: true
         }, 
         {
             type: 'lov', id: 'cuisine',
             column: 'cuisine_id',
-            label: 'Cuisine', width: 38,
-            list: lov_cuisines,
-            lovtable: 'restaurant_cuisine',
+             label: 'Cuisine', width: 38,
+             list: lov_cuisines,
+             lovtable: 'restaurant_cuisine',
             inMany: true
         },
         {
             type: 'lov', id: 'price',
             column: 'price_id',
-            label: 'Price', width: 30,
-            list: lov_prices,
-            lovtable: 'restaurant_price',
+             label: 'Price', width: 30,
+             list: lov_prices,
+             lovtable: 'restaurant_price',
             inMany: true
         },
         {
             type: 'url', id: 'web',
-            column: 'web',
-            label: 'web', width: 32
+             label: 'web', width: 32
         },
         {
             type: 'url', id: 'yelp',
-            column: 'yelp',
-            label: 'yelp', width: 38, 
+             label: 'yelp', width: 38, 
         },
         {
             type: 'textmultiline', id: 'schedule',
-            column: 'schedule',
-            label: 'Schedule', maxLength: 1000, width: 30, height: 3
+             label: 'Schedule', maxLength: 1000, width: 30, height: 3
         },
         {
             type: 'textmultiline', id: 'notes',
-            column: 'notes',
-            label: 'Notes', maxLength: 1000, width: 32, height: 3
+             label: 'Notes', maxLength: 1000, width: 32, height: 3
         },
         {
             type: 'textmultiline', id: 'favorite',
-            column: 'favorite',
-            label: 'Favorite dish', maxLength: 1000, width: 38, height: 3
+             label: 'Favorite dish', maxLength: 1000, width: 38, height: 3
         },
  
         {
             type: 'text', id: 'phone',
-            column: 'phone',
-            label: 'Phone', maxLength: 20, width: 50, mini:'1'
+             label: 'Phone', maxLength: 20, width: 50, mini:'1'
         },
         {
             type: 'textmultiline', id: 'address',
-            column: 'address',
-            label: 'Address', maxLength: 150, width: 100,
+             label: 'Address', maxLength: 150, width: 100,
              height: 2
         },
         {
             type: 'text', id: 'city',
-            column: 'city',
-            label: 'City', maxLength: 100, width: 62,
+             label: 'City', maxLength: 100, width: 62,
             inMany: true
         },
         {
             type: 'text', id: 'state',
-            column: 'state',
-            label: 'State', width: 23
+             label: 'State', width: 23
         },
         {
             type: 'text', id: 'zip',
-            column: 'zip',
-            label: 'Zip', maxLength: 12, width: 15
+             label: 'Zip', maxLength: 12, width: 15
         },
     ],
 

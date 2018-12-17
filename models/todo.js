@@ -1,56 +1,89 @@
 module.exports = {
-    id: 'todo',
-    active: true,
-    table: 'task',
-    titleField: 'title',
-    searchFields: ['title', 'description'],
-    fields: [
-        {
-            id: 'title', column: 'title', type: 'text', 
-            label: 'Title', required: true,
-            maxLength: 255,
-            inMany: true
-        },
-        {
-            id: 'duedate', column: 'due_date', type: 'date', 
-            label: 'Due Date', inMany: true
-        },
-        {
-            id: 'category', column: 'category_id', type: 'lov', 
-            label: 'Category', inMany: true,
-            lovtable: 'task_category',
-            list: [
-                {id: 1, text: 'Home'},
-                {id: 2, text: 'Work'},
-                {id: 3, text: 'Fun'},
-                {id: 4, text: 'Others'},
-                {id: 5, text: 'Misc.'}
-            ]
-        },
-        {
-            id: 'priority', column: 'priority_id', type: 'lov', 
-            label: 'Priority', 
-            required: true, inMany: true,
-            lovtable: 'task_priority',
-            list: [
-                {id: 1, text: '1 - ASAP'},
-                {id: 2, text: '2 - Urgent'},
-                {id: 3, text: '3 - Important'},
-                {id: 4, text: '4 - Medium'},
-                {id: 5, text: '5 - Low'}
-            ]
-        },
-        {
-            id: 'complete', column: 'complete', type: 'boolean', 
-            width: 100, inMany: true,
-            label: 'Complete'
-        },
-        {
-            id: 'description', column: 'description', 
-            type: 'textmultiline', 
-            label: 'Description', 
-            maxLength: 1000,
-            inMany: false
-        }
-    ]
-};
+  id: "todo",
+  label: "To-Do List",
+  name: "task",
+  namePlural: "tasks",
+  icon: "todo.gif",
+  titleField: "title",
+  table: "task",
+
+	fields:[
+    {
+      id: "title",
+      label: "Title",
+      type: "text",
+      width: 100,
+      required: true,
+      inMany: true
+    },
+    {
+      id: "duedate", 
+      type: "date", 
+      label: "Due Date", 
+      width: 38,
+      inMany: true
+    },
+    {
+      id: "category", 
+      type: "lov", 
+      label: "Category",
+      lovtable: 'task_category',
+      list: [
+        {id: 1, text: "Home"},
+        {id: 2, text: "Work"},
+        {id: 3, text: "Fun"},
+        {id: 4, text: "Others"},
+        {id: 5, text: "Misc."}
+      ], 
+      width: 62,
+      inMany: true
+    },
+    {
+        id: "priority", type: "lov", 
+        label: "Priority", 
+        width: 100,  inMany: true,
+        lovtable: 'task_priority',
+        list: [
+            {id: 1, text: "1 - ASAP"},
+            {id: 2, text: "2 - Urgent"},
+            {id: 3, text: "3 - Important"},
+            {id: 4, text: "4 - Medium"},
+            {id: 5, text: "5 - Low"}
+        ],
+        defaultValue: 4
+    },
+    {
+      id: "complete", 
+      type: "boolean", 
+      label: "Complete", 
+      width: 100,
+      inMany: true
+    },
+    {
+      id: "description", 
+      type: "textmultiline", 
+      label: "Description", 
+      height: 5
+    }
+	],
+
+  groups: [
+    {
+      id:"p1", type:"panel", 
+      label: "Task", width: 62,
+      fields: ["title", "duedate", "category"]
+    },
+    {
+      id:"p2", type:"panel", 
+      label: "Status", width: 38,
+      fields: ["priority", "complete"]
+    },
+    {
+      id:"p3", type:"panel", 
+      label: "Task Description", width: 100,
+      fields: ["description"]
+    }
+  ]
+
+}
+

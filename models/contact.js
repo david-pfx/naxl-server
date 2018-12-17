@@ -1,102 +1,129 @@
-var contact_LOVs = {
-
-    categories: [
-        {id: 1, text: 'Work'},
-        {id: 2, text: 'Fun'},
-        {id: 3, text: 'Travel'},
-        {id: 4, text: 'Business'},
-        {id: 5, text: 'Cars'},
-        {id: 6, text: 'Sport'},
-        {id: 7, text: 'Misc.'}
-    ]
-};
+var lov_categories = [
+    {id: '1', text: 'Work'},
+    {id: '2', text: 'Fun'},
+    {id: '3', text: 'Travel'},
+    {id: '4', text: 'Business'},
+    {id: '5', text: 'Cars'},
+    {id: '6', text: 'Sport'},
+    {id: '7', text: 'Misc.'}
+];
 
 module.exports = {
     id: 'contact',
-    active: true,
     label: 'Address Book',
-    titleField: 'fistname',
+    icon: 'contact.gif',
+    name: 'contact', namePlural: 'contacts',
+    titleField: data => { 
+        return (data.firstname + ' ' + data.lastname).trim() || 'N/A'
+    },
+    // titleField: function(data){
+    //     var title = ''
+    //     if(data.firstname){
+    //         title += data.firstname+' ';
+    //     }
+    //     if(data.lastname){
+    //         title += data.lastname;
+    //     }
+    //     return title || 'N/A';
+    // },
     searchFields: ['lastname', 'firstname', 'jobtitle', 'company'],
-    fields: [
+
+    fields:[
         {
-            type: 'text', id: 'lastname', column: 'lastname', 
+            type: 'text', id: 'lastname',
             label: 'Lastname', maxLength: 50,
-            required: true, inMany: true
+            required: true, width: 62, inMany: true
         },
         {
-            type: 'text', id: 'firstname', column: 'firstname', 
-            label: 'Firstname', maxLength: 50,
-            required: true, inMany: true
+            type: 'text', id: 'firstname',
+             label: 'Firstname', maxLength: 50,
+            required: true, width: 38, inMany: true
         },
         {
-            type: 'text', id: 'jobtitle', column: 'jobtitle', 
-            label: 'Title'
+            type: 'text', id: 'jobtitle',
+             label: 'Title', maxLength: 50,
+            width: 62
         },
         {
-            type: 'text', id: 'company', column: 'company', 
-            label: 'Company',
+            type: 'text', id: 'company',
+             label: 'Company', maxLength: 50,
+            width: 38, inMany: true
+        },
+        {
+            type: 'email', id: 'email',
+             label: 'email', maxLength: 255,
+            width: 100 
+        },
+        {
+            type: 'url', id: 'web',
+             label: 'web', maxLength: 255, width: 100
+        },
+        {
+            type: 'lov', id: 'category',
+             label: 'Category', width: 100,
+             list: lov_categories,
+            lovtable: 'contact_category',	     
             inMany: true
         },
         {
-            type: 'email', id: 'email', column: 'email', 
-            label: 'email', maxLength: 100,
-            inMany: true
+            type: 'text', id: 'phone',
+             label: 'Work Phone', maxLength: 20, width: 100, mini:'1'
         },
         {
-            type: 'url', id: 'web', column: 'web', 
-            label: 'web'
+            type: 'text', id: 'phonehome',
+             label: 'Home Phone', maxLength: 20, width: 100
         },
         {
-            type: 'text', id: 'phone', column: 'phone', 
-            label: 'Work Phone', maxLength: 20
+            type: 'text', id: 'phonecell',
+             label: 'Cell.', maxLength: 20, width: 100, mini:'1'
         },
         {
-            type: 'text', id: 'phonehome', column: 'phonehome', 
-            label: 'Home Phone', maxLength: 20
+            type: 'text', id: 'fax', 
+             label: 'Fax', maxLength: 20, width: 100
         },
         {
-            type: 'text', id: 'phonecell', column: 'phonecell', 
-            label: 'Cell.', maxLength: 20
+            type: 'textmultiline', id: 'address',
+             label: 'Address', width: 100, height: 3
         },
         {
-            type: 'text', id: 'fax', column: 'fax', 
-            label: 'Fax', maxLength: 20
+            type: 'text', id: 'city',
+             label: 'City', maxLength: 100, width: 62
         },
         {
-            type: 'textmultiline', id: 'address', column: 'address', 
-             label: 'Address', height: 3,
+            type: 'text', id: 'state',
+             label: 'State', width: 23
         },
         {
-            type: 'text', id: 'city', column: 'city', 
-             label: 'City'
+            type: 'text', id: 'zip',
+             label: 'Zip', maxLength: 12, width: 15
         },
         {
-            type: 'text', //type: 'lov', 
-            id: 'state', column: 'state', 
-            label: 'State'
-            //list: contact_LOVs.states
+            type: 'text', id: 'country',
+             label: 'Country', maxLength: 60, width: 100
         },
         {
-            type: 'text', id: 'zip', column: 'zip', 
-             label: 'Zip', maxLength: 12
+            type: 'textmultiline', id: 'notes',
+             label: 'Notes', maxLength: 1000, width: 100, height: 6
+        }
+    ],
+
+    groups: [
+        {
+            type: 'panel', label: 'Identity', width: 62,
+            fields: ['lastname', 'firstname', 'jobtitle', 'company', 'email', 'web']
         },
         {
-            type: 'text',
-            id: 'country', column: 'country', 
-            label: 'Country'
+            type: 'panel', label: 'Contact Info', width: 38,
+            fields: ['phone', 'phonehome', 'phonecell', 'fax']
         },
         {
-            type: 'lov', 
-            id: 'category', column: 'category_id', 
-            label: 'Category',
-            inMany: true,
-            list: contact_LOVs.categories,
-            lovtable: 'contact_category'
+            type: 'panel', label: 'Address', width: 62,
+            fields: ['address', 'city', 'state', 'zip', 'country']
         },
         {
-            type: 'textmultiline', 
-            id: 'notes', column: 'notes', 
-            label: 'Notes'
+            type: 'panel', label: 'Misc.', width: 38,
+            fields: ['category','notes']
         }
     ]
-};
+}
+

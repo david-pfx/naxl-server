@@ -9,9 +9,9 @@ test('First test!', t => {
     t.end()
 })
 
-// require('./suite1')
-// require('./suite2')
-// require('./suite3')
+ require('./suite1')
+ require('./suite2')
+ require('./suite3')
 
 runtest.GetOk('table list', '/api/v1/table', (res, t) => {
     t.equal(res.body.length, 19, 'rows returned')

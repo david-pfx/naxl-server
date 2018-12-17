@@ -23,29 +23,35 @@ let fields = []
 
 for (let entity in modelsdata) {
     let model = models[entity]
-    let name = model.table || entity
-    addTable(name, 'entity', 'Sample data');
-    model.fields.forEach(f => {       
-        addField(name, f);
-    });
-    writeTable(name, modelsdata[entity]);
+    let tablename = model.table || entity
+    addTable(model, 'entity', 'Sample data');
+    // lov and element not done yet
+    if (model.fields) {
+        model.fields.forEach(f => {       
+            addField(model.id, f);
+        });
+        writeTable(tablename, modelsdata[entity]);
 
-    for (var i = 0; i < model.fields.length; i++) {
-        let field = model.fields[i]
-        if (field.type === 'lov' && field.list) {
-            addTable(field.lovtable, 'list', 'Sample data lookup');
-            writeTable(field.lovtable, field.list);
+        for (var i = 0; i < model.fields.length; i++) {
+            let field = model.fields[i]
+            if (field.type === 'lov' && field.list) {
+                let lov = Object.assign({}, models['lov'])
+                lov.table = field.lovtable || tablename +'_' + field.id
+                addTable(lov, 'list', 'Sample data lookup');
+                writeTable(lov.table, field.list);
+            }
         }
     }
 }
 //writeTable('table', 'entity', tables, 'Master table');
-dbs['table'].insert(tables, function (err, doc) { });
-dbs['field'].insert(fields, function (err, doc) { });
+dbs['table'].insert(tables, function (err, doc) { if (err) console.log(err) });
+dbs['field'].insert(fields, function (err, doc) { if (err) console.log(err)});
 
 // write set of rows as table
 function writeTable(name, data) {
     console.log('Writing', name, 'rows', data.length);
 
+    if (dbs[name]) console.log(name)
     var db = new nedb({ filename: dbpath + name + '.db', autoload: true })
     dbs[name] = db
     db.remove({}, { multi: true })
@@ -53,26 +59,28 @@ function writeTable(name, data) {
     for (var i = 0; i < data.length; i++) {
         // Overwrite id, store as _id for nedb indexing
         data[i]._id = data[i].id = i + 1;
-        db.insert(data[i], function (err, doc) { });
+        db.insert(data[i], function (err, doc) { if (err) console.log(err) });
     }
     db.persistence.compactDatafile()
 }
 
-function addTable(name, kind, desc) {
+function addTable(model, kind, desc) {
     let dbtid = tables.length + 1
-    tables.push({
+    let record = Object.assign({
         _id: dbtid,
-        id: name,
-        name: name.substring(0, 1).toUpperCase() + name.substring(1).replace('_', ' '),
         kind: (kind == 'entity') ? 1 : 2,
-        table: name,
         description: desc
-    });
+    }, model)
+    //dbs['table'].insert(record, function (err, doc) { });
+    tables.push(record)
 }
 
-function addField(table, field) {
-    field._id = fields.length + 1
-    field.table = table
-    fields.push(field);
+function addField(tableid, field) {
+    let record = Object.assign({
+        _id: fields.length + 1,
+        table: tableid
+    }, field)
+    //dbs['field'].insert(record, function (err, doc) { });
+    fields.push(record)
 }
 
