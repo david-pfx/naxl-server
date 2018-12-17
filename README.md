@@ -4,7 +4,7 @@ RESTful Micro-ORM for CRUD and more, using Node.js, Express, and PostgreSQL.
 
 Evolutility-Server-Node provides a set of generic REST endpoints for CRUD (Create, Read, Update, Delete) and simple charts based on models rather than code.
  
-For a matching model-driven UI, use [Evolutility-UI-React](http://github.com/evoluteur/evolutility-ui-react) or [Evolutility-UI-jQuery](http://github.com/evoluteur/evolutility-ui-jquery).
+For a matching model-driven Web UI, use [Evolutility-UI-React](http://github.com/evoluteur/evolutility-ui-react) or [Evolutility-UI-jQuery](http://github.com/evoluteur/evolutility-ui-jquery).
 
 
 ## Installation
@@ -99,10 +99,11 @@ Models contain the name of the driving table and the list of fields/columns pres
 | column       | Database column name for the field    |
 | lovtable     | Table to join to for field value (only for fields of "lov" type). |  
 | lovcolumn    | Column name (in the lovtable) for field value (only for fields of "lov" type). |  
-| type         | Field type is not a database column type but more a UI field type. Possible field types: <ul><li>boolean (yes/no)</li><li>date</li><li>datetime</li><li>decimal</li><li>document</li><li>email</li><li>image</li><li>integer</li><li>lov (list of values)</li><li>money</li><li>text</li><li>textmultiline</li><li>time</li><li>url</li></ul> |
+| type         | Field type is not a database column type but more a UI field type. Possible field types: <ul><li>boolean</li><li>date</li><li>datetime</li><li>decimal</li><li>document</li><li>email</li><li>image</li><li>integer</li><li>lov (list of values)</li><li>money</li><li>text</li><li>textmultiline</li><li>time</li><li>url</li></ul> |
 | required     | Determines if the field is required for saving.      |
 | readonly     | Prevents field modification.          |                      
 | inMany       | Determines if the field is present (by default) in lists of records. | 
+| noCharts       | Forbids charts on the field. | 
 
 Notes: More field properties (unique, min, max, minLength, maxLength...) will be added later.
 
@@ -205,7 +206,7 @@ GET /todo?priority=in.1,2,3
 ```
 Adding multiple parameters conjoins the conditions:
 ```
-todo?complete=0&duedate=lt.2017-01-01
+todo?complete=0&duedate=lt.2018-12-24
 ```
 
 These operators are available:
@@ -266,7 +267,7 @@ Notes: In the returned data every object has an extra property "\_full_count" wh
 
 ### Updating Data
 
-#### Record Creation
+#### Record creation
 
 To create a row in a database table post a JSON object whose keys are the names of the columns you would like to create. Missing keys will be set to default values when applicable.
 
@@ -277,7 +278,7 @@ POST /todo
 { title: 'Finish testing', priority: 2}
 ```
 
-Even though it is a "POST", the request returns the new record. It is not standard but it saves the UI a subsequent call.
+Even though it is a "POST", the request also returns the newly created record. It is not standard but it saves the UI a subsequent call.
 
 #### Update
 
@@ -310,7 +311,7 @@ DELETE /todo/5
 
 ### Extras endpoints
 
-In addition to CRUD, Evolutility-Server-Node provides a few endpoints for Charts, Lists of values, and more.
+In addition to CRUD, Evolutility-Server-Node provides a few endpoints for Charts, Lists of values, file upload, and API discovery.
 
 #### Discovery
 
@@ -364,7 +365,7 @@ POST /comics/upload/5
 With query parameters: file and "field.id".
 
 
-#### API Version
+#### API version
 
 This endpoint gets the API version (as specified in the project's package.json file).
 

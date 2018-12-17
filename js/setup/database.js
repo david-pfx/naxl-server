@@ -12,8 +12,11 @@ var pg = require('pg'),
     fs = require('fs'),
     parseConnection = require('pg-connection-string').parse;
     _ = require('underscore'),
+    { version, homepage } = require('../../package.json'),
     dico = require('../utils/dico');
 
+var models = require('../../models/all_models.js');
+var data = require('../../models/data/all_modelsdata.js');
 
 // - options; mostly from in config.js
 var config = require(path.join(__dirname, '../', '../', 'config')),
@@ -43,9 +46,6 @@ var ft_postgreSQL = {
     color: 'text',
     json: 'json'
 };
-
-var models = require('../../models/all_models.js');
-var data = require('../../models/data/all_modelsdata.js');
 
 
 
@@ -130,8 +130,7 @@ function m2db(mid){
         data[mid].forEach(function(row, idx){
             sqlData+='INSERT INTO '+tableNameSchema;
             var ns=[], vs=[];
-            var fn, f, v, 
-                sqlIdx = '';
+            var f, v;
             for(var fid in row){
                 f = fieldsH[fid];
                 if(f && fid!=='id'){
@@ -169,7 +168,7 @@ function m2db(mid){
     }
 
     var lovFields=fields.filter(function(f){
-        return f.type==='lov' || f.type==='list'
+        return (f.type==='lov' || f.type==='list') && !f.entity
     })
     var lovIncluded=[]
     if(lovFields){
@@ -209,21 +208,29 @@ if(config.wTimestamp){
 }
 
 for(var mid in models){
-    var sqls=m2db(mid);
-    sql+=sqls[0]
-    sqlData+=sqls[1]
+    var sqls = m2db(mid);
+    sql += sqls[0]
+    sqlData += sqls[1]
 }
 
 console.log(sql);
 
 if(sqlFile){
-    var fId = new Date().toISOString().replace(/:/g,'')
-    fs.writeFile('evol-db-schema-'+fId+'.sql', sql, function(err){
+    const d = new Date()
+    const fId = d.toISOString().replace(/:/g,'')
+    let header = `-- Evolutility v${version}
+-- SQL Script to create Evolutility database on PostgreSQL.
+-- ${homepage}
+-- ${d}\n\n`;
+
+    fs.writeFile('evol-db-schema-'+fId+'.sql', header + sql, function(err){
         if (err){
             throw err;
         }
     })
-    fs.writeFile('evol-db-data-'+fId+'.sql', sqlData, function(err){
+
+    header = header.replace('create', 'populate');
+    fs.writeFile('evol-db-data-'+fId+'.sql', header + sqlData, function(err){
         if (err){
             throw err;
         }

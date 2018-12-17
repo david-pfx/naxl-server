@@ -7,11 +7,11 @@
  ********************************************************* */
 
 const pg = require('pg'),
+    csv = require('express-csv'),
     config = require('../../config.js'),
     parseConnection = require('pg-connection-string').parse,
-    //csv = require('express-csv'),
     errors = require('./errors.js'),
-    logger = require('./logger.js');
+    logger = require('./logger');
 
 const dbConfig = parseConnection(config.connectionString)
 dbConfig.max = 10; // max number of clients in the pool 
@@ -23,13 +23,6 @@ pool.on('error', function (err, client) {
   console.error('Unexpected error on idle client', err.message, err.stack)
   process.exit(-1)
 })
-
-// - show error in console
-function consoleError(err){
-    if(err){
-        logger.logError(err);
-    }
-}
 
 // - concatenate SQL query
 function sqlQuery(q){
@@ -54,21 +47,21 @@ function sqlQuery(q){
 // - run a query and return the result in request
 function runQuery(res, sql, values, singleRecord, format, header){
     var results = [];
+    logger.logSQL(sql);
 
     // Get a Postgres client from the connection pool 
     pool.connect(function(err, client, done) {
         // SQL Query > Select Data
-        logger.logSQL(sql);
         if(!client){
             errors.badRequest(res, 'No Database connection.', 500)
         }
         client.query(sql, values, function(err, data) {
             done();
             var results = (data && data.rows) ? data.rows : [];
-            if(err){
+              if(err){
                 console.log(err.stack)
                 errors.badRequest(res, 'Database error.', 500)
-            }else{
+              }else{
                 var nbRecords = results.length; 
                 if(format==='csv'){
                     if(nbRecords){
