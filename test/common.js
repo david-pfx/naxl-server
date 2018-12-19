@@ -7,7 +7,7 @@ var app = require('../app')
 
 // all tests use this common structure
 function GetOk(name, api, testfun) {
-    test(name + ' api:' + api, t => {
+    test(`======== ${name} === ${api} ========`, t => {
         request(app)
             .get(api)
             .expect(200)
@@ -21,7 +21,7 @@ function GetOk(name, api, testfun) {
 }
 
 function DeleteOk(name, api, testfun) {
-    test(name + ' api:' + api, t => {
+    test(`======== ${name} === ${api} ========`, t => {
         request(app)
             .delete(api)
             .expect(200)
@@ -35,7 +35,7 @@ function DeleteOk(name, api, testfun) {
 }
 
 function PostOk(name, api, data, testfun) {
-    test(name + ' api:' + api, t => {
+    test(`======== ${name} === ${api} ========`, t => {
         request(app)
             .post(api)
             .send(data)
@@ -50,7 +50,7 @@ function PostOk(name, api, data, testfun) {
 }
 
 function PutOk(name, api, data, testfun) {
-    test(name + ' api:' + api, t => {
+    test(`======== ${name} === ${api} ========`, t => {
         request(app)
             .put(api)
             .send(data)
@@ -64,8 +64,23 @@ function PutOk(name, api, data, testfun) {
     })
 }
 
+function GetOkCsv(name, api, testfun) {
+    test(`======== ${name} === ${api} ========`, t => {
+        request(app)
+            .get(api)
+            .expect(200)
+            .expect('Content-Type', /csv/)
+            .end((err, res) => {
+                t.error(err, 'no error')
+                testfun(res, t)
+                t.end()
+            })
+    })
+}
+
 module.exports = {
     GetOk: GetOk,
+    GetOkCsv: GetOkCsv,
     DeleteOk: DeleteOk,
     PostOk: PostOk,
     PutOk: PutOk

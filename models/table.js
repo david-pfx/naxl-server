@@ -8,6 +8,16 @@ module.exports = {
     description: 'Contains an entry for every entity or values table', 
     fields: [
         {
+            id: 'label', 
+            type: 'text', 
+            label: 'Label', 
+            description: 'Displayed name for entire table', 
+            maxLength: 50,
+            required: true,
+            width: 20, 
+            inMany: true
+        },
+        {
             id: 'name', 
             type: 'text', 
             label: 'Name', 
@@ -40,16 +50,6 @@ module.exports = {
                 {id: 2, text: "List"},
                 {id: 3, text: "Child"},
             ], 
-        },
-        {
-            id: 'label', 
-            type: 'text', 
-            label: 'Label', 
-            description: 'Displayed name for entire table', 
-            maxLength: 50,
-            required: true,
-            width: 20, 
-            inMany: true
         },
         {
             id: 'titleField', 

@@ -32,6 +32,7 @@ runtest.GetOk('todo item', '/api/v1/todo/19', (res, t) => {
 runtest.GetOk('contact list', '/api/v1/contact', (res, t) => {
     t.equal(res.body.length, 11, 'rows returned')
     let row0 = res.body[0]
+    t.equal(row0.id, 11, 'first item id')
     t.equal(row0.lastname, 'Cheng', 'first item first column')
 })
 
@@ -54,6 +55,7 @@ runtest.GetOk('comics item', '/api/v1/comics/3', (res, t) => {
 runtest.GetOk('wines list', '/api/v1/winecellar', (res, t) => {
     t.equal(res.body.length, 5, 'rows returned')
     let row0 = res.body[0]
+    t.equal(row0.id, 5, 'first item id')
     // case sensitive
     t.equal(row0.name, 'Château Montelena', 'first item first column')
     // case insensitive
@@ -63,6 +65,12 @@ runtest.GetOk('wines list', '/api/v1/winecellar', (res, t) => {
 runtest.GetOk('wines item', '/api/v1/winecellar/5', (res, t) => {
     let row0 = res.body
     t.equal(row0.id, 5, 'first item id')
+})
+
+runtest.GetOk('wine tasting list', '/api/v1/winetasting', (res, t) => {
+    t.equal(res.body.length, 11, 'rows returned')
+    let row0 = res.body[0]
+    t.equal(row0.id, 10, 'first item id')
 })
 
 // LOV

@@ -7,12 +7,14 @@
  * (c) 2018 Olivier Giulieri
  ********************************************************* */
 
-const nedb = require('nedb')
+const nedb = require('nedb'),
+    csv = require('csv-express')
+    //csv = require('express-csv')
 
 const dico = require('./utils/dico'),
-    errors = require('./utils/errors.js'),
+    errors = require('./utils/errors'),
     logger = require('./utils/logger'),
-    config = require('../config.js')
+    config = require('../config')
 
 const dbpath = './nedb-data/'
 
@@ -134,6 +136,8 @@ function joinResult(res, results, format, fields) {
     if (fields.length == 0) return sendResult(res, results, format)
     let field = fields.shift()
     let txtfld = field.id + '_txt'
+    if (!field.lovtable) 
+        console.log(`bad lovtable field ${field}`)
     console.log('join', field.lovtable, field.id, txtfld)
     let db = getDb(field.lovtable)
     db.find({ }, (err, docs) => {
@@ -154,45 +158,45 @@ function join(data, lookup, field, txtfld) {
 
 // create grouping of data on given field using labels if supplied
 function groupResult(data, field, labels) {
-    let groups = {};
+    let groups = {}
     data.forEach(row => {
-        let value = row[field.id];
+        let value = row[field.id]
         if (typeof value == 'undefined') value = 'Unknown'
-         groups[value] = (groups[value]) ? groups[value] + 1 : 1;
-    });
-    console.log('groups', groups);
-    let result = [], i = 1;
+         groups[value] = (groups[value]) ? groups[value] + 1 : 1
+    })
+    console.log('groups', groups)
+    let result = [], i = 1
     for (let g in groups) {
         result.push({ 
             id: i++, 
             label: (labels && labels[g]) ? labels[g] : g, 
             value: groups[g] 
-        });
+        })
     }
     result.sort((a, b) => { return a.label < b.label ? -1 : 1 })
     //console.log('result', result);
-    return result;
+    return result
 }
 
 // format and send result as CSV, single or set
 function sendResult(res, results, format) {
-    var nbRecords = results.length; 
-    if(format.csv) {
+    var nbRecords = results.length
+    if (format.csv) {
         if (!nbRecords) return null
-        results.unshift(format.csv);
-        logger.logCount(results.length || 0);
+        results.unshift(format.csv)
+        logger.logCount(results.length || 0)
         return res.csv(results)
     }
     if (format.single) {
-        logger.logCount(results.length || 0);
-        return res.json(results.length?results[0]:null);
+        logger.logCount(results.length || 0)
+        return res.json(results.length?results[0]:null)
     }
-    res.setHeader('_count', nbRecords);
+    res.setHeader('_count', nbRecords)
     res.setHeader('_full_count', nbRecords && format.count ? format.count : 0)
     // TODO: find a better way to pass the total count
-    if(nbRecords && format.count) results[0]["_full_count"] = format.count
-    logger.logCount(results.length || 0);
-    return res.json(results);
+    if (nbRecords && format.count) results[0]["_full_count"] = format.count
+    logger.logCount(results.length || 0)
+    return res.json(results)
 }
 
 // --------------------------------------------------------------------------------------

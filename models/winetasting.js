@@ -35,7 +35,8 @@ module.exports = {
             required: true
         },
         { 
-            id: 'wine_id', entity: 'winecellar', column: 'wine_id', type: 'lov', 
+            id: 'wine_id', column: 'wine_id', type: 'lov', 
+	        lovtable: 'wine', entity: 'winecellar', 
             label: 'Wine', inMany: true,
             width: 62,
             required: true
