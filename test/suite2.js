@@ -14,16 +14,16 @@ runtest.GetOk('info', '/api/v1//', (res, t) => {
 runtest.GetOk('todo list', '/api/v1/todo', (res, t) => {
     t.equal(res.body.length, 21, 'rows returned')
     let row0 = res.body[0]
-    t.equal(row0.id, 19, 'first item id')
+    t.equal(row0.id, 20, 'first item id')
     t.equal(row0._full_count, 21, 'full count')
     t.equal(row0.title, 'Add sample data', 'first item title')
     t.equal(row0.category, 2, 'first item category')
     t.equal(row0.category_txt, "Work", 'first item category text')
 })
 
-runtest.GetOk('todo item', '/api/v1/todo/19', (res, t) => {
+runtest.GetOk('todo item', '/api/v1/todo/20', (res, t) => {
     let row0 = res.body
-    t.equal(row0.id, 19, 'first item id')
+    t.equal(row0.id, 20, 'first item id')
     t.equal(row0.title, 'Add sample data', 'first item first column')
     t.equal(row0.category, 2, 'first item category')
     t.equal(row0.category_txt, "Work", 'first item category text')
@@ -32,7 +32,7 @@ runtest.GetOk('todo item', '/api/v1/todo/19', (res, t) => {
 runtest.GetOk('contact list', '/api/v1/contact', (res, t) => {
     t.equal(res.body.length, 11, 'rows returned')
     let row0 = res.body[0]
-    t.equal(row0.id, 11, 'first item id')
+    t.equal(row0.id, 12, 'first item id')
     t.equal(row0.lastname, 'Cheng', 'first item first column')
 })
 

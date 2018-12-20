@@ -57,8 +57,9 @@ function writeTable(name, data) {
     db.remove({}, { multi: true })
     db.persistence.compactDatafile()
     for (var i = 0; i < data.length; i++) {
-        // Use id if provided, else use index as _id for nedb indexing
-        data[i]._id = (typeof data[i].id == 'undefined') ? i + 1 : +data[i].id
+        // Use id if integer > 0, else use index as _id for nedb indexing
+        data[i].id = data[i]._id = (+data[i].id) ? +data[i].id : i + 1
+        //data[i]._id = (typeof data[i].id == 'undefined') ? i + 1 : +data[i].id
         //data[i]._id = data[i].id = i + 1;
         db.insert(data[i], function (err, doc) { if (err) console.log(err) });
     }

@@ -8,8 +8,7 @@
  ********************************************************* */
 
 const nedb = require('nedb'),
-    csv = require('csv-express')
-    //csv = require('express-csv')
+    csv = require('csv-express')        // later fork on express-csv
 
 const dico = require('./utils/dico'),
     errors = require('./utils/errors'),
@@ -271,6 +270,7 @@ function insertOne(req, res) {
     let db = getDb(table)
     db.find({ }, (err, docs) => {
         if (err) return sendError(res, 'db error: ' + err)
+        // search table for highest id (the simplest thing)
         let id = docs.reduce((acc, row) => { 
             return (row._id > acc) ? row._id : acc
         }, 0)
@@ -386,7 +386,7 @@ function collecOne(req, res) {
 }
 
 // --------------------------------------------------------------------------------------
-// -----------------    CHARRTS   -------------------------------------------------------
+// -----------------    CHARTS   --------------------------------------------------------
 // --------------------------------------------------------------------------------------
 
 // return group and count for charting
