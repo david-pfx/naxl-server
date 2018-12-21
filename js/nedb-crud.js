@@ -56,10 +56,12 @@ function csvHeader(fields){
 }
 
 // get model, check for error
-function getModel(entity) {
-    model = dico.getModel(entity)
-    if (!model) return { error: 'Invalid entity: "' + entity + '".' }
-    return model
+function promiseModel(entity) {
+    return new Promise(function(resolve, reject) {
+        let model = dico.getModel(entity)
+        if (model) resolve(model)
+        else reject({ error: 'Invalid entity: "' + entity + '".' })
+    })
 }
 
 function getCollection(model, name) {
@@ -135,16 +137,21 @@ function joinResult(res, results, format, fields) {
     if (fields.length == 0) return sendResult(res, results, format)
     let field = fields.shift()
     let txtfld = field.id + '_txt'
-    if (!field.lovtable) 
-        console.log(`bad lovtable field ${field}`)
-    console.log('join', field.lovtable, field.id, txtfld)
-    let db = getDb(field.lovtable)
-    db.find({ }, (err, docs) => {
-        ungetDb(field.lovtable)
-        if (err) return sendError(res, 'db error: ' + err)
-        join(results, docs, field, txtfld)
+    if (field.list){
+        join(results, field.list, field, txtfld)
         joinResult(res, results, format, fields)
-    })
+    } else {
+        if (!field.lovtable) 
+            console.log(`bad lovtable field ${field}`)
+        console.log('join', field.lovtable, field.id, txtfld)
+        let db = getDb(field.lovtable)
+        db.find({ }, (err, docs) => {
+            ungetDb(field.lovtable)
+            if (err) return sendError(res, 'db error: ' + err)
+            join(results, docs, field, txtfld)
+            joinResult(res, results, format, fields)
+        })
+    }
 }
 
 // add new field from lookup to data 
@@ -198,6 +205,45 @@ function sendResult(res, results, format) {
     return res.json(results)
 }
 
+// create summary result
+function summariseResult(docs, model) {
+    let result = { count: docs.length };
+    model.fields.forEach(f => {
+        if (dico.fieldIsNumeric(f)) {
+            if (!dico.fieldIsDateOrTime(f)) {
+                let sum = docs.reduce((acc, row) => {
+                    return acc + (row[f.id] || 0);
+                }, 0);
+                let count = docs.reduce((acc, row) => {
+                    return acc + (row[f.id] ? 1 : 0);
+                }, 0);
+                result[f.id + '_avg'] = sum / count;
+                if (f.type == 'money' || f.type == 'integer')
+                    result[f.id + '_sum'] = sum;
+            }
+            result[f.id + '_min'] = docs.reduce((acc, row) => {
+                return typeof row[f.id] == 'undefined' ? acc
+                    : (acc == null || row[f.id] < acc) ? row[f.id] : acc;
+            }, null);
+            result[f.id + '_max'] = docs.reduce((acc, row) => {
+                return typeof row[f.id] == 'undefined' ? acc
+                    : (acc == null || row[f.id] > acc) ? row[f.id] : acc;
+            }, null);
+        }
+    });
+    if (config.wTimestamp) {
+        result.u_date_max = docs.reduce((acc, row) => {
+            return acc > row.u_date ? acc : row.u_date;
+        }, docs[0].u_date);
+    }
+    if (config.wComments) {
+        result.nb_comments = docs.reduce((acc, row) => {
+            return acc + row.nb_comments;
+        }, 0);
+    }
+    return result;
+}
+
 // --------------------------------------------------------------------------------------
 // -----------------    GET MANY   ------------------------------------------------------
 // --------------------------------------------------------------------------------------
@@ -208,27 +254,29 @@ function getMany(req, res) {
 
     const entity = req.params.entity,
         format = req.query.format || null,
-        order = req.query.order || null,
-        model = getModel(entity)
-    if (model.error) return sendError(res, model.error)
+        order = req.query.order || null
 
-    let table = model.table || entity,
-        orderby = orderBy(model, order)
-    console.log('get all', table, 'order by', orderby)
-    
-    let csvheader = (format==='csv') ? csvHeader(model.fields) : null,
-        db = getDb(table),
-        total_count = 0
-    db.count({}, function(err, n) {
-        ungetDb(table)
-        if (err) return sendError(res, 'db error: ' + err)
-        total_count = n
+    promiseModel(entity)
+    .then(model => {
+        let table = model.table || entity,
+            orderby = orderBy(model, order)
+        console.log('get all', table, 'order by', orderby)
+        
+        let csvheader = (format==='csv') ? csvHeader(model.fields) : null,
+            db = getDb(table),
+            total_count = 0
+        db.count({}, function(err, n) {
+            ungetDb(table)
+            if (err) return sendError(res, 'db error: ' + err)
+            total_count = n
+        })
+        // TODO: make sort case-insensitive
+        db.find({}).sort(orderby).exec((err, docs) => {
+            if (err) return sendError(res, 'db error: ' + err)
+            joinResult(res, docs, { csv: csvheader , single: false, count: total_count }, lovFields(model))
+        })
     })
-    // TODO: make sort case-insensitive
-    db.find({}).sort(orderby).exec((err, docs) => {
-        if (err) return sendError(res, 'db error: ' + err)
-        joinResult(res, docs, { csv: csvheader , single: false, count: total_count }, lovFields(model))
-    })
+    .catch(err => { return sendError(res, err) })
 }
 
 // --------------------------------------------------------------------------------------
@@ -240,18 +288,21 @@ function getOne(req, res) {
     logger.logReq('GET ONE', req)
 
     const entity = req.params.entity,
-        id = +req.params.id,
-        model = getModel(entity),
-        table = model.table || entity
-    if (model.error) return sendError(res, model.error)
+        id = +req.params.id
 
-    console.log('get one', table)
-    let db = getDb(table)
-    db.find({ _id: id }, (err, docs) => {
-        ungetDb(table)
-        if (err) return sendError(res, 'db error: ' + err)
-        joinResult(res, docs, { single: true }, lovFields(model))
+    promiseModel(entity)
+    .then(model => {
+        const table = model.table || entity
+        console.log('get one', table)
+
+        let db = getDb(table)
+        db.find({ _id: id }, (err, docs) => {
+            ungetDb(table)
+            if (err) return sendError(res, 'db error: ' + err)
+            joinResult(res, docs, { single: true }, lovFields(model))
+        })
     })
+    .catch(err => { return sendError(res, err) })
 }
 
 // --------------------------------------------------------------------------------------
@@ -262,26 +313,28 @@ function getOne(req, res) {
 function insertOne(req, res) {
     logger.logReq('INSERT ONE', req)
 
-    const entity = req.params.entity,
-        model = getModel(entity),
-        table = model.table || entity
-    if (model.error) return sendError(res, model.error)
+    const entity = req.params.entity
+    promiseModel(entity)
+    .then(model => {
+        const table = model.table || entity
 
-    let db = getDb(table)
-    db.find({ }, (err, docs) => {
-        if (err) return sendError(res, 'db error: ' + err)
-        // search table for highest id (the simplest thing)
-        let id = docs.reduce((acc, row) => { 
-            return (row._id > acc) ? row._id : acc
-        }, 0)
-        let record = prepareRecord(req.body, id + 1, model);
-        db.insert(record, (err, docs) => {
-            ungetDb(table)
+        let db = getDb(table)
+        db.find({ }, (err, docs) => {
             if (err) return sendError(res, 'db error: ' + err)
-            console.log('new:', docs)
-            sendResult(res, [{ id: docs._id }], { single: true })
+            // search table for highest id (the simplest thing)
+            let id = docs.reduce((acc, row) => { 
+                return (row._id > acc) ? row._id : acc
+            }, 0)
+            let record = prepareRecord(req.body, id + 1, model);
+            db.insert(record, (err, docs) => {
+                ungetDb(table)
+                if (err) return sendError(res, 'db error: ' + err)
+                console.log('new:', docs)
+                sendResult(res, [{ id: docs._id }], { single: true })
+            })
         })
     })
+    .catch(err => { return sendError(res, err) })
 }
 
 // --------------------------------------------------------------------------------------
@@ -293,18 +346,21 @@ function updateOne(req, res) {
     logger.logReq('UPDATE ONE', req)
 
     const entity = req.params.entity,
-        id = +req.params.id,
-        model = getModel(entity),
-        table = model.table || entity
-    if (model.error) return sendError(res, model.error)
+        id = +req.params.id
 
-    let record = prepareRecord(req.body, id, model);
-    let db = getDb(table)
-    db.update({ _id: id }, record, (err, num) => {
-        ungetDb(table)
-        if (err) return sendError(res, 'db error: ' + err)
-        sendResult(res, [{ id: id }], { single: true })
+    promiseModel(entity)
+    .then(model => {
+        const table = model.table || entity
+
+        let record = prepareRecord(req.body, id, model);
+        let db = getDb(table)
+        db.update({ _id: id }, record, (err, num) => {
+            ungetDb(table)
+            if (err) return sendError(res, 'db error: ' + err)
+            sendResult(res, [{ id: id }], { single: true })
+        })
     })
+    .catch(err => { return sendError(res, err) })
 }
 
 
@@ -317,19 +373,21 @@ function deleteOne(req, res) {
     logger.logReq('DELETE ONE', req)
 
     const entity = req.params.entity,
-        id = +req.params.id,
-        model = getModel(entity),
-        table = model.table || entity
-    if (model.error) return sendError(res, model.error)
-    
-    let db = getDb(table)
-    db.remove({ _id: id }, {}, (err, num) => {
-        ungetDb(table)
-        if (err) return sendError(res, 'db error: ' + err)
-        sendResult(res, [{ id: id }], { single: true })
-    })
-}
+        id = +req.params.id
 
+    promiseModel(entity)
+    .then(model => {
+        const table = model.table || entity
+    
+        let db = getDb(table)
+        db.remove({ _id: id }, {}, (err, num) => {
+            ungetDb(table)
+            if (err) return sendError(res, 'db error: ' + err)
+            sendResult(res, [{ id: id }], { single: true })
+        })
+    })
+    .catch(err => { return sendError(res, err) })
+}
 
 // --------------------------------------------------------------------------------------
 // -----------------    LIST OF VALUES   ------------------------------------------------
@@ -340,22 +398,27 @@ function lovOne(req, res) {
     logger.logReq('LOV ONE', req)
 
     const entity = req.params.entity,
-        fid = req.params.field,
-        model = getModel(entity)
-    if (model.error) return sendError(res, model.error)
+        fid = req.params.field
 
-    let field = model.fields.find(f => { return f.id === fid })
-    if (!field) return sendError(res, 'Unknown field: ' + fid)
-    console.log('get all', field.lovtable)
+    promiseModel(entity)
+    .then(model => {
+        let field = model.fields.find(f => { return f.id === fid })
+        if (!field) return sendError(res, 'Unknown field: ' + fid)
+        console.log('get all', field.lovtable)
 
-    let db = getDb(field.lovtable)
-    db.find({ }, (err, docs) => {
-        ungetDb(field.lovtable)
-        if (err) sendError(res, 'db error: ' + err)
-        else sendResult(res, docs, { })
+        if (field.list) {
+            sendResult(res, field.list, { })
+        } else {
+            let db = getDb(field.lovtable)
+            db.find({ }, (err, docs) => {
+                ungetDb(field.lovtable)
+                if (err) sendError(res, 'db error: ' + err)
+                else sendResult(res, docs, { })
+            })
+        }
     })
+    .catch(err => { return sendError(res, err) })
 }
-
 
 // --------------------------------------------------------------------------------------
 // -----------------    SUB-COLLECTIONS   -----------------------------------------------
@@ -367,22 +430,25 @@ function collecOne(req, res) {
 
     const entity = req.params.entity,
         collecId = req.params.collec,
-        pId = parseInt(req.query.id, 10),
-        model = getModel(entity)
-    if (model.error) return sendError(res, model.error)
-    const collec = getCollection(model, collecId)
-    if (collec.error) return sendError(res, collec.error)
+        pId = parseInt(req.query.id, 10)
 
-    let where = { [collec.column]: pId }, 
-        orderby = { [collec.fields[0].id]: 1 }
-    console.log('get', collec.table || entity, 'where', where, 'order by', orderby)
-    
-    let db = getDb(collec.table)
-    db.find(where).sort(orderby).exec((err, docs) => {
-        ungetDb(collec.table)
-        if (err) return sendError(res, 'db error: ' + err)
-        sendResult(res, docs, { })
+    promiseModel(entity)
+    .then(model => {
+        const collec = getCollection(model, collecId)
+        if (collec.error) return sendError(res, collec.error)
+
+        let where = { [collec.column]: pId }, 
+            orderby = { [collec.fields[0].id]: 1 }
+        console.log('get', collec.table || entity, 'where', where, 'order by', orderby)
+        
+        let db = getDb(collec.table)
+        db.find(where).sort(orderby).exec((err, docs) => {
+            ungetDb(collec.table)
+            if (err) return sendError(res, 'db error: ' + err)
+            sendResult(res, docs, { })
+        })
     })
+    .catch(err => { return sendError(res, err) })
 }
 
 // --------------------------------------------------------------------------------------
@@ -393,87 +459,58 @@ function collecOne(req, res) {
 function chartField(req, res) {
     logger.logReq('GET CHART', req);
 
-    const entity = req.params.entity,
-        model = getModel(entity),
-        field = getField(model, req.params.field),
-        table = model.table || entity
-    if (model.error) return sendError(res, model.error)
-    if (field.error) return sendError(res, field.error)
+    const entity = req.params.entity
 
-    console.log('get', table, 'field:', field.id)
-    
-    let db = getDb(table)
-    db.find({ }, (err, docs) => {
-        ungetDb(table)
-        console.log(entity, err, docs.length)
-        if (err) return sendError(res, 'db error: ' + err)
-        if (field.type == 'lov') {
-            let db2 = getDb(field.lovtable)
-            db2.find({ }, (err, lov) => {
-                ungetDb(field.lovtable)
-                if (err) return sendError(res, 'db error: ' + err)
-                let results = groupResult(docs, field, lookupDict(lov));
+    promiseModel(entity)
+    .then(model => {
+        const table = model.table || entity,
+            field = getField(model, req.params.field)
+        if (field.error) return sendError(res, field.error)
+        console.log('get', table, 'field:', field.id)
+        
+        let db = getDb(table)
+        db.find({ }, (err, docs) => {
+            ungetDb(table)
+            console.log(entity, err, docs.length)
+            if (err) return sendError(res, 'db error: ' + err)
+            if (field.type == 'lov') {
+                let db2 = getDb(field.lovtable)
+                db2.find({ }, (err, lov) => {
+                    ungetDb(field.lovtable)
+                    if (err) return sendError(res, 'db error: ' + err)
+                    let results = groupResult(docs, field, lookupDict(lov));
+                    sendResult(res, results, { })
+                })
+            } else {
+                const boolookup = { false: 'No', true: 'Yes'}
+                let results = groupResult(docs, field, (field.type == 'boolean') ? boolookup : null);
                 sendResult(res, results, { })
-            })
-        } else {
-            const boolookup = { false: 'No', true: 'Yes'}
-            let results = groupResult(docs, field, (field.type == 'boolean') ? boolookup : null);
-            sendResult(res, results, { })
-        }
+            }
+        })
     })
+    .catch(err => { return sendError(res, err) })
 }
 
 // - returns a summary on a single table
 function statsMany(req, res) {
     logger.logReq('GET STATS', req);
 
-    const entity = req.params.entity,
-        model = getModel(entity),
-        table = model.table || entity
-    if (model.error) return sendError(res, model.error)
+    const entity = req.params.entity
 
-    console.log('get stats', table)
-    
-    let db = getDb(table)
-    db.find({ }, (err, docs) => {
-        ungetDb(table)
-        let result = { count: docs.length }
-        model.fields.forEach(f => {
-            if (dico.fieldIsNumeric(f)) {
-                if (!dico.fieldIsDateOrTime(f)) {
-                    let sum = docs.reduce((acc, row) => { 
-                        return acc + (row[f.id] || 0)
-                    }, 0)
-                    let count = docs.reduce((acc, row) => { 
-                        return acc + (row[f.id] ? 1 : 0)
-                    }, 0)
-                    result[f.id + '_avg'] = sum / count
-                    if (f.type == 'money' || f.type == 'integer')
-                        result[f.id + '_sum'] = sum
-                }
-                result[f.id + '_min'] = docs.reduce((acc, row) => { 
-                    return typeof row[f.id] == 'undefined' ? acc
-                        : (acc == null || row[f.id] < acc) ? row[f.id] : acc
-                }, null)
-                result[f.id + '_max'] = docs.reduce((acc, row) => { 
-                    return typeof row[f.id] == 'undefined' ? acc
-                        : (acc == null || row[f.id] > acc) ? row[f.id] : acc
-                }, null)
-            }
+    promiseModel(entity)
+    .then(model => {
+        const table = model.table || entity
+        console.log('get stats', table)
+        
+        let db = getDb(table)
+        db.find({ }, (err, docs) => {
+            ungetDb(table)
+            let result = summariseResult(docs, model);
+            //console.log('result:', result)
+            sendResult(res, [ result ], { })
         })
-        if(config.wTimestamp){
-            result.u_date_max = docs.reduce((acc, row) => { 
-                return acc > row.u_date ? acc : row.u_date
-            }, docs[0].u_date)
-        }
-        if(config.wComments){
-            result.nb_comments = docs.reduce((acc, row) => { 
-                return acc + row.nb_comments
-            }, 0)
-        }
-        //console.log('result:', result)
-        sendResult(res, [ result ], { })
     })
+    .catch(err => { return sendError(res, err) })
 }
 
 // --------------------------------------------------------------------------------------
@@ -498,3 +535,4 @@ module.exports = {
     statsMany: statsMany
 
 }
+

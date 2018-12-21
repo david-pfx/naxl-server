@@ -1,8 +1,8 @@
 module.exports = {
 	// master table
 	table: require('./table'),
-	field: require('./field'),
-	lov: require('./lov'),
+	//field: require('./field'),
+	//lov: require('./lov'),
 
 	// sample data
 	todo: require('./todo'),

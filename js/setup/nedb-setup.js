@@ -25,27 +25,28 @@ for (let entity in modelsdata) {
     let model = models[entity]
     let tablename = model.table || entity
     addTable(model, 'entity', `Sample data for ${model.label}`);
+    writeTable(tablename, modelsdata[entity]);
     // lov and element not done yet
-    if (model.fields) {
-        model.fields.forEach(f => {       
-            addField(model.id, f);
-        });
-        writeTable(tablename, modelsdata[entity]);
+    // if (model.fields) {
+    //     model.fields.forEach(f => {       
+    //         addField(model.id, f);
+    //     });
+    //     writeTable(tablename, modelsdata[entity]);
 
-        for (var i = 0; i < model.fields.length; i++) {
-            let field = model.fields[i]
-            if (field.type === 'lov' && field.list) {
-                let lov = Object.assign({}, models['lov'])
-                lov.table = field.lovtable || tablename +'_' + field.id
-                addTable(lov, 'list', `Sample data lookup for ${field.label}`);
-                writeTable(lov.table, field.list);
-            }
-        }
-    }
+    //     for (var i = 0; i < model.fields.length; i++) {
+    //         let field = model.fields[i]
+    //         if (field.type === 'lov' && field.list) {
+    //             let lov = Object.assign({}, models['lov'])
+    //             lov.table = field.lovtable || tablename +'_' + field.id
+    //             addTable(lov, 'list', `Sample data lookup for ${field.label}`);
+    //             writeTable(lov.table, field.list);
+    //         }
+    //     }
+    // }
 }
-//writeTable('table', 'entity', tables, 'Master table');
+
 dbs['table'].insert(tables, function (err, doc) { if (err) console.log(err) });
-dbs['field'].insert(fields, function (err, doc) { if (err) console.log(err)});
+// dbs['field'].insert(fields, function (err, doc) { if (err) console.log(err)});
 
 // write set of rows as table
 function writeTable(name, data) {
@@ -77,12 +78,12 @@ function addTable(model, kind, desc) {
     tables.push(record)
 }
 
-function addField(tableid, field) {
-    let record = Object.assign({
-        _id: fields.length + 1,
-        table: tableid
-    }, field)
-    //dbs['field'].insert(record, function (err, doc) { });
-    fields.push(record)
-}
+// function addField(tableid, field) {
+//     let record = Object.assign({
+//         _id: fields.length + 1,
+//         table: tableid
+//     }, field)
+//     //dbs['field'].insert(record, function (err, doc) { });
+//     fields.push(record)
+// }
 
