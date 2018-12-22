@@ -9,8 +9,9 @@
 
 const config = require('../../config.js'),
 	pkg = require('../../package.json'),
-	chalk = require('chalk'),
-	consoleLog = config.consoleLog;
+	chalk = require('chalk')
+
+let consoleLog = config.consoleLog;
 
 function green(msg){
 	if(consoleLog){
@@ -19,6 +20,10 @@ function green(msg){
 }
 
 module.exports = {
+
+	setEnable: function(enable) {
+		consoleLog = enable
+	},
 
 	ascii_art: function(){
 		if(consoleLog){
@@ -91,5 +96,10 @@ module.exports = {
 			}
 		}
 	},
+
+	log: function(...args) {
+		if (consoleLog)
+			console.log(...args)
+	}
 
 };

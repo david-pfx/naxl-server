@@ -12,11 +12,6 @@ var models = require('../../models/all_models');
 var modelsdata = require('../../models/data/all_modelsdata');
 const dbpath = './nedb-data/'
 
-// var dbt = new nedb({ filename: dbpath + 'table' + '.db', autoload: true })
-// dbt.remove({}, { multi: true })
-// dbt.persistence.compactDatafile()
-// let dbtid = 0
-
 let dbs = {}
 let tables = []
 let fields = []
@@ -26,27 +21,9 @@ for (let entity in modelsdata) {
     let tablename = model.table || entity
     addTable(model, 'entity', `Sample data for ${model.label}`);
     writeTable(tablename, modelsdata[entity]);
-    // lov and element not done yet
-    // if (model.fields) {
-    //     model.fields.forEach(f => {       
-    //         addField(model.id, f);
-    //     });
-    //     writeTable(tablename, modelsdata[entity]);
-
-    //     for (var i = 0; i < model.fields.length; i++) {
-    //         let field = model.fields[i]
-    //         if (field.type === 'lov' && field.list) {
-    //             let lov = Object.assign({}, models['lov'])
-    //             lov.table = field.lovtable || tablename +'_' + field.id
-    //             addTable(lov, 'list', `Sample data lookup for ${field.label}`);
-    //             writeTable(lov.table, field.list);
-    //         }
-    //     }
-    // }
 }
 
 dbs['table'].insert(tables, function (err, doc) { if (err) console.log(err) });
-// dbs['field'].insert(fields, function (err, doc) { if (err) console.log(err)});
 
 // write set of rows as table
 function writeTable(name, data) {
@@ -60,8 +37,6 @@ function writeTable(name, data) {
     for (var i = 0; i < data.length; i++) {
         // Use id if integer > 0, else use index as _id for nedb indexing
         data[i].id = data[i]._id = (+data[i].id) ? +data[i].id : i + 1
-        //data[i]._id = (typeof data[i].id == 'undefined') ? i + 1 : +data[i].id
-        //data[i]._id = data[i].id = i + 1;
         db.insert(data[i], function (err, doc) { if (err) console.log(err) });
     }
     db.persistence.compactDatafile()
@@ -74,16 +49,6 @@ function addTable(model, kind, desc) {
         kind: (kind == 'entity') ? 1 : 2,
         description: desc
     }, model)
-    //dbs['table'].insert(record, function (err, doc) { });
     tables.push(record)
 }
-
-// function addField(tableid, field) {
-//     let record = Object.assign({
-//         _id: fields.length + 1,
-//         table: tableid
-//     }, field)
-//     //dbs['field'].insert(record, function (err, doc) { });
-//     fields.push(record)
-// }
 

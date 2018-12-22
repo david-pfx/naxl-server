@@ -7,10 +7,11 @@
  * (c) 2018 Olivier Giulieri
  *************************************************************************** */
 
-var models = require('../../models/all_models'),
-	config = require('../../config.js');
+var config = require('../../config.js');
 
 var schema = '"'+(config.schema || 'evolutility')+'"';
+
+let models = {}
 
 // - Field Types
 var ft = {
@@ -140,7 +141,7 @@ module.exports = {
 
 	fieldTypes: ft,
 
-	getModel: mId => prepModel(models[mId]),
+	getModel: mId => models[mId] && prepModel(models[mId]),
 
 	prepModel: prepModel,
 

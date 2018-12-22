@@ -1,9 +1,12 @@
 // index.js -- unit testing master
 
-var request = require('supertest')
-var test = require('tape')
+const request = require('supertest'),
+    test = require('tape')
 
-var runtest = require('./common')
+const runtest = require('./common'),
+    logger = require('../js/utils/logger')
+
+    logger.setEnable(false)
 
 test('First test!', t => {
     t.end()

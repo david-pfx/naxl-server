@@ -15,7 +15,8 @@ const dico = require('./utils/dico'),
     logger = require('./utils/logger'),
     config = require('../config')
 
-const dbpath = './nedb-data/'
+const dbpath = './nedb-data/',
+    tables_name = 'table'
 
 const defaultPageSize = config.pageSize || 50,
     lovSize = config.lovSize || 100
@@ -60,7 +61,18 @@ function promiseModel(entity) {
     return new Promise(function(resolve, reject) {
         let model = dico.getModel(entity)
         if (model) resolve(model)
-        else reject({ error: 'Invalid entity: "' + entity + '".' })
+        else {
+            let db = getDb(tables_name)
+            db.find({ id: entity }, (err, docs) => {
+                ungetDb(tables_name)
+                if (err) reject('db error: ' + err)
+                else if (!docs.length) reject('Invalid entity: "' + entity + '".')
+                else {
+                    let model = dico.prepModel(docs[0])
+                    resolve(model)
+                }
+            })
+        }
     })
 }
 
@@ -93,7 +105,7 @@ function getDb(name) {
         return dbCache[name].db
     }
     let db = new nedb({ filename: dbpath + name + '.db' })
-    db.loadDatabase(err => { if (err) console.log(err) })
+    db.loadDatabase(err => { if (err) logger.log(err) })
     dbCache[name] = { db: db, use: 1 }
     return db
 }
@@ -142,8 +154,8 @@ function joinResult(res, results, format, fields) {
         joinResult(res, results, format, fields)
     } else {
         if (!field.lovtable) 
-            console.log(`bad lovtable field ${field}`)
-        console.log('join', field.lovtable, field.id, txtfld)
+            logger.log(`bad lovtable field ${field}`)
+        logger.log('join', field.lovtable, field.id, txtfld)
         let db = getDb(field.lovtable)
         db.find({ }, (err, docs) => {
             ungetDb(field.lovtable)
@@ -170,7 +182,7 @@ function groupResult(data, field, labels) {
         if (typeof value == 'undefined') value = 'Unknown'
          groups[value] = (groups[value]) ? groups[value] + 1 : 1
     })
-    console.log('groups', groups)
+    logger.log('groups', groups)
     let result = [], i = 1
     for (let g in groups) {
         result.push({ 
@@ -180,7 +192,7 @@ function groupResult(data, field, labels) {
         })
     }
     result.sort((a, b) => { return a.label < b.label ? -1 : 1 })
-    //console.log('result', result);
+    //logger.log('result', result);
     return result
 }
 
@@ -260,7 +272,7 @@ function getMany(req, res) {
     .then(model => {
         let table = model.table || entity,
             orderby = orderBy(model, order)
-        console.log('get all', table, 'order by', orderby)
+        logger.log('get all', table, 'order by', orderby)
         
         let csvheader = (format==='csv') ? csvHeader(model.fields) : null,
             db = getDb(table),
@@ -293,7 +305,7 @@ function getOne(req, res) {
     promiseModel(entity)
     .then(model => {
         const table = model.table || entity
-        console.log('get one', table)
+        logger.log('get one', table)
 
         let db = getDb(table)
         db.find({ _id: id }, (err, docs) => {
@@ -329,7 +341,7 @@ function insertOne(req, res) {
             db.insert(record, (err, docs) => {
                 ungetDb(table)
                 if (err) return sendError(res, 'db error: ' + err)
-                console.log('new:', docs)
+                logger.log('new:', docs)
                 sendResult(res, [{ id: docs._id }], { single: true })
             })
         })
@@ -404,7 +416,7 @@ function lovOne(req, res) {
     .then(model => {
         let field = model.fields.find(f => { return f.id === fid })
         if (!field) return sendError(res, 'Unknown field: ' + fid)
-        console.log('get all', field.lovtable)
+        logger.log('get all', field.lovtable)
 
         if (field.list) {
             sendResult(res, field.list, { })
@@ -439,7 +451,7 @@ function collecOne(req, res) {
 
         let where = { [collec.column]: pId }, 
             orderby = { [collec.fields[0].id]: 1 }
-        console.log('get', collec.table || entity, 'where', where, 'order by', orderby)
+        logger.log('get', collec.table || entity, 'where', where, 'order by', orderby)
         
         let db = getDb(collec.table)
         db.find(where).sort(orderby).exec((err, docs) => {
@@ -466,12 +478,12 @@ function chartField(req, res) {
         const table = model.table || entity,
             field = getField(model, req.params.field)
         if (field.error) return sendError(res, field.error)
-        console.log('get', table, 'field:', field.id)
+        logger.log('get', table, 'field:', field.id)
         
         let db = getDb(table)
         db.find({ }, (err, docs) => {
             ungetDb(table)
-            console.log(entity, err, docs.length)
+            logger.log(entity, err, docs.length)
             if (err) return sendError(res, 'db error: ' + err)
             if (field.type == 'lov') {
                 let db2 = getDb(field.lovtable)
@@ -500,13 +512,13 @@ function statsMany(req, res) {
     promiseModel(entity)
     .then(model => {
         const table = model.table || entity
-        console.log('get stats', table)
+        logger.log('get stats', table)
         
         let db = getDb(table)
         db.find({ }, (err, docs) => {
             ungetDb(table)
             let result = summariseResult(docs, model);
-            //console.log('result:', result)
+            //logger.log('result:', result)
             sendResult(res, [ result ], { })
         })
     })
