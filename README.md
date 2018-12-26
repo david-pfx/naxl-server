@@ -99,6 +99,7 @@ Models contain the name of the driving table and the list of fields/columns pres
 | column       | Database column name for the field    |
 | lovtable     | Table to join to for field value (only for fields of "lov" type). |  
 | lovcolumn    | Column name (in the lovtable) for field value (only for fields of "lov" type). |  
+| lovicon      | Set to True to include icon with LOV items.    |
 | type         | Field type is not a database column type but more a UI field type. Possible field types: <ul><li>boolean</li><li>date</li><li>datetime</li><li>decimal</li><li>document</li><li>email</li><li>image</li><li>integer</li><li>lov (list of values)</li><li>money</li><li>text</li><li>textmultiline</li><li>time</li><li>url</li></ul> |
 | required     | Determines if the field is required for saving.      |
 | readonly     | Prevents field modification.          |                      
@@ -106,6 +107,21 @@ Models contain the name of the driving table and the list of fields/columns pres
 | noCharts       | Forbids charts on the field. | 
 
 Notes: More field properties (unique, min, max, minLength, maxLength...) will be added later.
+
+### Collection
+
+Multiple Master-Details can be specified with collections. 
+
+| Property     | Meaning                               |
+|--------------|---------------------------------------|
+| id           | Unique key for the collection.        |
+| table        | DB Table to query.      |
+| column       | Column in the detail table to match against id of object. |
+| entity       | Object linked to.                        |
+| order        | "asc/desc" for sorting by the first field in fields.     |
+| fields       | Array of fields.                        |
+
+Example of collection in [Wine cellar](https://github.com/evoluteur/evolutility-server-node/blob/master/models/winecellar.js).
 
 ### Sample model
 
@@ -209,7 +225,7 @@ Adding multiple parameters conjoins the conditions:
 todo?complete=0&duedate=lt.2018-12-24
 ```
 
-These operators are available:
+Based on field types, a sub-set of the operators below are supported by the API.
 
 | Operator     | Meaning                 | Example                      |
 |--------------|-------------------------|------------------------------|
@@ -256,7 +272,7 @@ GET /todo?page=0&pageSize=50
 #### Formatting
 
 By default all APIs return data in JSON format. This API call allows to request data in CSV format (export to Excel).
-This feature is using [express-csv](https://github.com/nulltask/express-csv).
+This feature is using [csv-express](https://github.com/nulltask/csv-express).
 
 ```
 GET /<model.id>?format=csv
