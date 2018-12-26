@@ -11,7 +11,7 @@
   },
   "bugs": "https://github.com/evoluteur/evolutility-server-node/issues",
   "scripts": {
-    "start": "set APIPORT=2002&& supervisor -n exit ./bin/www",
+    "start": "supervisor -n exit ./bin/www",
     "startd": "set APIPORT=2002 && set DEBUG=express:* && supervisor -n exit ./bin/www",
     "test": "node test/index",
     "tests": "node ./js/setup/nedb-setup.js && node test/index",
