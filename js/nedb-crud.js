@@ -519,7 +519,7 @@ function statsMany(req, res) {
             ungetDb(table)
             let result = summariseResult(docs, model);
             //logger.log('result:', result)
-            sendResult(res, [ result ], { })
+            sendResult(res, [ result ], { single: true })
         })
     })
     .catch(err => { return sendError(res, err) })
