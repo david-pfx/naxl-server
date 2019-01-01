@@ -6,10 +6,9 @@
  * (c) 2018 Olivier Giulieri
  ********************************************************* */
 
-const {fieldInCharts} = require('./utils/dico'),
+const {fieldInCharts, models} = require('./utils/dico'),
     logger = require('./utils/logger'),
     pkg = require('../package.json'),
-    models = require('../models/all_models'),
     config = require('../config.js');
 
 // - returns list of all models and URLs to query them

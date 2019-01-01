@@ -132,8 +132,7 @@ runtest.GetOk('todo chart complete', '/api/v1/todo/chart/complete', (res, t) => 
 })
 
 runtest.GetOk('wine stats', '/api/v1/winecellar/stats', (res, t) => {
-    t.equal(res.body.length, 1, 'rows returned')
-    let row0 = res.body[0]
+    let row0 = res.body
     t.equal(row0.price_min, 20, 'price min')
     t.equal(row0.price_max, 399, 'price max')
     t.equal(row0.price_sum, 543, 'price sum')

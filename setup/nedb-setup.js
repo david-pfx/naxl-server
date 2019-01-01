@@ -8,8 +8,8 @@
 
 var nedb = require('nedb')
 
-var models = require('../../models/all_models');
-var modelsdata = require('../../models/data/all_modelsdata');
+var models = require('./models/all_models');
+var modelsdata = require('./data/all_modelsdata');
 const dbpath = './nedb-data/'
 
 let dbs = {}

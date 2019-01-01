@@ -140,6 +140,7 @@ function prepModel(m){
 module.exports = {
 
 	fieldTypes: ft,
+	models: models,
 
 	getModel: mId => models[mId] && prepModel(models[mId]),
 
