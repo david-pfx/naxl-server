@@ -1,16 +1,17 @@
-# Evolutility-Server-Node
+# Naxl-Server
 
-This project is the server for a Personal Database Manager.
+This project is the server for Naxl.
 It has been created as a fork of [Evolutility-server-node](https://github.com/evoluteur/evolutility-server-node/).
+Naxl is a Personal Database Manager for no-coders. Not Another eXceL.
 
 The aim is to produce a web-based tool that anyone can use to create and manage databases (sets of tables) for their own use.
-It should be based on state of the art technology, which currently means React, Express, JSON, JavaScript and NoSQL.
-
 The target user is someone with a degree of technical skill but no specific programming ability. 
 Anyone who can create and edit an Excel spreadsheet should qualify.
 
-The focus is on the ability to store and retrieve useful data in a variety of relevant formats. 
+The focus is on the ability to store and retrieve personally useful data from a variety of sources in a variety of relevant formats. 
 It is not about transactional updates, detailed validation or multi-user access.
+
+The technology used should be state of the art, hence the choice of JavaScript, React, Express, JSON and NoSQL.
 
 ## Installation
 
@@ -21,7 +22,7 @@ Follow the instructions much as for Evolutility-Server-Node.
  - `npm run smoke` or `npm run test` to run some tests.
  - `npm start` to run the server.
 
-Then download, install and start the UI project, or there won't be much to see.
+Then download, install and start the [Naxl-UI](https://github.com/david-pfx/naxl-ui) project, or there won't be much to see.
 
 ## Modifications
 

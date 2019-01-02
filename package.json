@@ -1,15 +1,15 @@
 {
-  "name": "evolutility-server-node",
-  "version": "0.5.4",
-  "description": "RESTful Micro-ORM for CRUD and more, using Node.js, Express, and Postgres.",
-  "license": "MIT",
-  "homepage": "https://github.com/evoluteur/evolutility-server-node",
-  "author": "Olivier Giulieri (https://evoluteur.github.io/)",
+  "name": "naxl-server",
+  "version": "0.1.1",
+  "description": "Server backend for Naxl Personal Database Manager",
+  "homepage": "https://github.com/david-pfx/naxl-server",
+  "author": "David M. Bennett (naxl.net)",
   "repository": {
     "type": "git",
-    "url": "git://github.com/evoluteur/evolutility-server-node.git"
+    "url": "git://github.com/david-pfx/naxl-server"
   },
-  "bugs": "https://github.com/evoluteur/evolutility-server-node/issues",
+  "bugs": "https://github.com/david-pfx/naxl-server/issues",
+  "license": "MIT",
   "scripts": {
     "setup-sql": "node ./setup/database",
     "setup-nedb": "node ./setup/nedb-setup",

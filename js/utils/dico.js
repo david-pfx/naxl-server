@@ -9,7 +9,7 @@
 
 var config = require('../../config.js');
 
-var schema = '"'+(config.schema || 'evolutility')+'"';
+var schema = '"' + config.schema + '"';
 
 let models = {}
 

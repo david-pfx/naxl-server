@@ -221,8 +221,8 @@ console.log(sql);
 if(sqlFile){
     const d = new Date()
     const fId = d.toISOString().replace(/:/g,'')
-    let header = `-- Evolutility v${version}
--- SQL Script to create Evolutility database on PostgreSQL.
+    let header = `-- Naxl v${version}
+-- SQL Script to create Naxl database on PostgreSQL.
 -- ${homepage}
 -- ${d}\n\n`;
 

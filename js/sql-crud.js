@@ -14,7 +14,7 @@ const dico = require('./utils/dico'),
     logger = require('./utils/logger'),
     config = require('../config');
 
-const schema = '"'+(config.schema || 'evolutility')+'"',
+const schema = '"' + config.schema + '"',
     defaultPageSize = config.pageSize || 50,
     lovSize = config.lovSize || 100;
 

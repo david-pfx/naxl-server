@@ -11,9 +11,9 @@ module.exports = {
 	//apiPort: 2000,
 
 	// DB connection
-	connectionString: process.env.DATABASE_URL || 'postgres://postgres:xxxx@localhost:5432/Evolutility-test', 
+	connectionString: process.env.DATABASE_URL || 'postgres://postgres:xxxx@localhost:5432/naxl-test', 
 	//connectionString: process.env.DATABASE_URL || 'postgres://evol:love@localhost:5432/Evolutility', 
-	schema: 'evolutility',
+	schema: 'naxl',
 
 	// Pagination and maximum number of rows
 	pageSize: 50,
@@ -34,8 +34,8 @@ module.exports = {
 	apiInfo: true,
 
 	// Directory for uploaded files
-	uploadPath: '../evolutility-ui-react-0.2/public/pix/',
-	publicPath: '../evolutility-ui-react-0.2/public/',
+	uploadPath: '../naxl-ui/public/pix/',
+	publicPath: '../naxl-ui/public/',
 
 	// Console log
 	consoleLog: true,

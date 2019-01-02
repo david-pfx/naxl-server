@@ -1,5 +1,3 @@
-// Evolutility-UI-React :: /views/one/all-setup.js
-
 // load initial values into neb database
 // https://github.com/louischatriot/nedb
 
@@ -14,7 +12,6 @@ const dbpath = './nedb-data/'
 
 let dbs = {}
 let tables = []
-let fields = []
 
 for (let entity in modelsdata) {
     let model = models[entity]
@@ -42,6 +39,7 @@ function writeTable(name, data) {
     db.persistence.compactDatafile()
 }
 
+// add a row to the table of tables
 function addTable(model, kind, desc) {
     let dbtid = tables.length + 1
     let record = Object.assign({
