@@ -10,7 +10,7 @@ module.exports = {
 	"table": "contact",
 	"name": "contact",
 	"namePlural": "contacts",
-	"titleField": "fistname",
+	"titleField": "firstname",
 	"searchFields": [
 		"lastname",
 		"firstname",

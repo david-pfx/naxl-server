@@ -13,7 +13,7 @@
             "type": "node",
             "request": "launch",
             "name": "Run setup",
-            "program": "${workspaceFolder}\\js\\setup\\nedb-setup"
+            "program": "${workspaceFolder}\\setup\\nedb-setup"
         }
     ]
 }

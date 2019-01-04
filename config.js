@@ -12,8 +12,9 @@ module.exports = {
 
 	// DB connection
 	connectionString: process.env.DATABASE_URL || 'postgres://postgres:xxxx@localhost:5432/naxl-test', 
-	//connectionString: process.env.DATABASE_URL || 'postgres://evol:love@localhost:5432/Evolutility', 
 	schema: 'naxl',
+	//connectionString: process.env.DATABASE_URL || 'postgres://evol:love@localhost:5432/Evolutility', 
+	//schema: 'evolutility',
 
 	// Pagination and maximum number of rows
 	pageSize: 50,

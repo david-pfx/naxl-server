@@ -16,7 +16,7 @@ const express = require('express'),
 	//crud = require('./sql-crud'),
 	info = require('./info');
 
-logger.ascii_art();
+logger.banner()
 
 /*
 // ======  file server ====================================

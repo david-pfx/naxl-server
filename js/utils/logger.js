@@ -25,24 +25,12 @@ module.exports = {
 		consoleLog = enable
 	},
 
-	ascii_art: function(){
-		if(consoleLog){
-			const apiRoot = 'http://localhost:'+config.apiPort+config.apiPath;
-
-			console.log(
-				'  ______          _           _ _ _\n'+
-				' |  ____|        | |      /| (_) (_)/|\n'+
-				' | |____   _____ | |_   _| |_ _| |_| |_ _   _\n'+
-				' |  __\\ \\ / / _ \\| | | | | __| | | | __| | | |\n'+
-				' | |___\\ V / (_) | | |_| | |_| | | | |_| |_| |\n'+
-				' |______\\_/ \\___/|_|\\__,_|\\__|_|_|_|\\__|\\__, |\n'+
-				'         ___  ___ _ ____   _____ _ __    __/ |\n'+
-				'  ____  / __|/ _ \\ \'__\\ \\ / / _ \\ \'__|  |___/\n' + 
-				' |____| \\__ \\  __/ |   \\ V /  __/ |\n'+
-				'        |___/\\___|_|    \\_/ \\___|_|    v'+pkg.version+'\n\n'+
-				apiRoot+'\n\n'+
-				new Date() + '\n'
-			);
+	banner: function() {
+		if (consoleLog) {
+			console.log(chalk.cyanBright(
+				`Naxl Server v${pkg.version}\n` +
+				`http://localhost:${config.apiPort}${config.apiPath}\n` +
+				`${new Date()}\n`))
 		}
 	},
 

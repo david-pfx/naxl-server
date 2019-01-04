@@ -20,7 +20,9 @@ for (let entity in modelsdata) {
     writeTable(tablename, modelsdata[entity]);
 }
 
-dbs['table'].insert(tables, function (err, doc) { if (err) console.log(err) });
+dbs['table'].insert(tables, function (err, doc) { 
+    if (err) console.log(err) 
+});
 
 // write set of rows as table
 function writeTable(name, data) {
@@ -32,21 +34,33 @@ function writeTable(name, data) {
     db.remove({}, { multi: true })
     db.persistence.compactDatafile()
     for (var i = 0; i < data.length; i++) {
-        // Use id if integer > 0, else use index as _id for nedb indexing
-        data[i].id = data[i]._id = (+data[i].id) ? +data[i].id : i + 1
-        db.insert(data[i], function (err, doc) { if (err) console.log(err) });
+        let record = prepareAdd(data[i], i + 1)
+        db.insert(record, function (err, doc) { if (err) console.log(err) });
     }
     db.persistence.compactDatafile()
 }
 
 // add a row to the table of tables
+// note that in the table id===_id and modelid carries the id for the model.
 function addTable(model, kind, desc) {
     let dbtid = tables.length + 1
-    let record = Object.assign({
+    let record = Object.assign({}, model, {
         _id: dbtid,
+        id: dbtid,
+        modelid: model.id,
         kind: (kind == 'entity') ? 1 : 2,
         description: desc
-    }, model)
+    })
     tables.push(record)
 }
+
+// _id is the required key, always an integer, use id if possible
+// id is the required user-visible key, same as _id if missing
+function prepareAdd(data, id) {
+    data._id = (+data.id > 0) ? +data.id : id
+    if (!data.id) data.id = data._id
+    else if (+data.id > 0) data.id = +data.id
+    return data
+}
+
 

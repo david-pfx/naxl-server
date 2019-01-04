@@ -63,7 +63,7 @@ function promiseModel(entity) {
         if (model) resolve(model)
         else {
             let db = getDb(tables_name)
-            db.find({ id: entity }, (err, docs) => {
+            db.find({ modelid: entity }, (err, docs) => {
                 ungetDb(tables_name)
                 if (err) reject('db error: ' + err)
                 else if (!docs.length) reject('Invalid entity: "' + entity + '".')
@@ -132,13 +132,28 @@ function orderBy(model, order) {
 }
 
 // prepare a record for insert or update
-function prepareRecord(data, id, model) {
-    data.id = data._id = id
+function prepareRecord(data, model) {
+    // remove formula fields -- recalculated as needed
     model.fields.forEach(f => {
         if (f.type == 'formula')
             delete data[f.id]
     })
     return data
+}
+
+// _id is the required key, always an integer, use id if possible
+// id is the required user-visible key, same as _id if missing
+function prepareAdd(data, id) {
+    data._id = (+data.id > 0) ? +data.id : id
+    if (!data.id) data.id = data._id
+    else if (+data.id > 0) data.id = +data.id
+    return data
+}
+
+// prepare a key for find by id
+// if id is a positive integer use _id, else use id
+function prepareKey(id) {
+    return (+id > 0) ? { _id: +id } : { id: id }
 }
 
 // augment the result set by the addition of joined fields on lov tables
@@ -300,7 +315,7 @@ function getOne(req, res) {
     logger.logReq('GET ONE', req)
 
     const entity = req.params.entity,
-        id = +req.params.id
+        id = req.params.id
 
     promiseModel(entity)
     .then(model => {
@@ -308,7 +323,7 @@ function getOne(req, res) {
         logger.log('get one', table)
 
         let db = getDb(table)
-        db.find({ _id: id }, (err, docs) => {
+        db.find(prepareKey(id), (err, docs) => {
             ungetDb(table)
             if (err) return sendError(res, 'db error: ' + err)
             joinResult(res, docs, { single: true }, lovFields(model))
@@ -334,10 +349,11 @@ function insertOne(req, res) {
         db.find({ }, (err, docs) => {
             if (err) return sendError(res, 'db error: ' + err)
             // search table for highest id (the simplest thing)
-            let id = docs.reduce((acc, row) => { 
+            let lastid = docs.reduce((acc, row) => { 
                 return (row._id > acc) ? row._id : acc
             }, 0)
-            let record = prepareRecord(req.body, id + 1, model);
+            let record = prepareAdd(prepareRecord(req.body, model), lastid + 1)
+            //let record = prepareRecord(req.body, lastid + 1, model);
             db.insert(record, (err, docs) => {
                 ungetDb(table)
                 if (err) return sendError(res, 'db error: ' + err)
@@ -358,18 +374,19 @@ function updateOne(req, res) {
     logger.logReq('UPDATE ONE', req)
 
     const entity = req.params.entity,
-        id = +req.params.id
+        id = req.params.id
 
     promiseModel(entity)
     .then(model => {
         const table = model.table || entity
 
-        let record = prepareRecord(req.body, id, model);
+        let record = prepareRecord(req.body, model)
+        let key = prepareKey(id)
         let db = getDb(table)
-        db.update({ _id: id }, record, (err, num) => {
+        db.update(key, record, (err, num) => {
             ungetDb(table)
             if (err) return sendError(res, 'db error: ' + err)
-            sendResult(res, [{ id: id }], { single: true })
+            sendResult(res, [{ id: key._id || key.id }], { single: true })
         })
     })
     .catch(err => { return sendError(res, err) })
@@ -385,17 +402,18 @@ function deleteOne(req, res) {
     logger.logReq('DELETE ONE', req)
 
     const entity = req.params.entity,
-        id = +req.params.id
+        id = req.params.id
 
     promiseModel(entity)
     .then(model => {
         const table = model.table || entity
     
+        let key = prepareKey(id)
         let db = getDb(table)
-        db.remove({ _id: id }, {}, (err, num) => {
+        db.remove(key, {}, (err, num) => {
             ungetDb(table)
             if (err) return sendError(res, 'db error: ' + err)
-            sendResult(res, [{ id: id }], { single: true })
+            sendResult(res, [{ id: key._id || key.id }], { single: true })
         })
     })
     .catch(err => { return sendError(res, err) })
