@@ -156,6 +156,15 @@ function prepareKey(id) {
     return (+id > 0) ? { _id: +id } : { id: id }
 }
 
+// field type json must be stringified for transmission
+function unJson(data, fields) {
+    fields.filter(f => f.type == 'json').forEach(f => {
+        data.forEach(r => {
+            r[f.id] = JSON.stringify(r[f.id])
+        })
+    })
+    return data
+}
 // augment the result set by the addition of joined fields on lov tables
 // look up value in this field on lovtable._id
 // replace with lovtable.name (normal tables) or lovtable.text (lov tables)
@@ -222,7 +231,7 @@ function sendResult(res, results, format) {
     }
     if (format.single) {
         logger.logCount(results.length || 0)
-        return res.json(results.length?results[0]:null)
+        return res.json(results.length ? results[0] : null)
     }
     res.setHeader('_count', nbRecords)
     res.setHeader('_full_count', nbRecords && format.count ? format.count : 0)
@@ -300,7 +309,9 @@ function getMany(req, res) {
         // TODO: make sort case-insensitive
         db.find({}).sort(orderby).exec((err, docs) => {
             if (err) return sendError(res, 'db error: ' + err)
-            joinResult(res, docs, { csv: csvheader , single: false, count: total_count }, lovFields(model))
+            joinResult(res, unJson(docs, model.fields), { 
+                csv: csvheader , single: false, count: total_count 
+            }, lovFields(model))
         })
     })
     .catch(err => { return sendError(res, err) })
@@ -326,7 +337,7 @@ function getOne(req, res) {
         db.find(prepareKey(id), (err, docs) => {
             ungetDb(table)
             if (err) return sendError(res, 'db error: ' + err)
-            joinResult(res, docs, { single: true }, lovFields(model))
+            joinResult(res, unJson(docs, model.fields), { single: true }, lovFields(model))
         })
     })
     .catch(err => { return sendError(res, err) })

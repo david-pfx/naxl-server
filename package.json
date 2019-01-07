@@ -11,6 +11,7 @@
   "bugs": "https://github.com/david-pfx/naxl-server/issues",
   "license": "MIT",
   "scripts": {
+    "setup": "node ./setup/nedb-setup",
     "setup-sql": "node ./setup/database",
     "setup-nedb": "node ./setup/nedb-setup",
     "start": "supervisor -n exit ./bin/www",

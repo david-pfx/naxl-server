@@ -6,11 +6,12 @@ module.exports = {
     icon: 'table.gif',
     titleField: 'label',
     description: 'Contains an entry for every entity or values table', 
+    table: 'table',
     fields: [
         {
             id: 'label', 
             type: 'text', 
-            label: 'Label', 
+            label: 'Collection Name', 
             description: 'Displayed name for entire table', 
             maxLength: 50,
             required: true,
@@ -20,7 +21,7 @@ module.exports = {
         {
             id: 'name', 
             type: 'text', 
-            label: 'Name', 
+            label: 'Item Name', 
             description: 'Displayed name for single item', 
             maxLength: 50,
             required: true,
@@ -30,7 +31,7 @@ module.exports = {
         {
             id: 'namePlural', 
             type: 'text', 
-            label: 'Plural name', 
+            label: 'Items (plural) name', 
             description: 'Displayed name for multiple items', 
             maxLength: 50,
             required: true,
@@ -57,27 +58,33 @@ module.exports = {
             label: 'Title field', 
             description: 'Displayed name for editing or browsing an item', 
             maxLength: 50,
-            required: true,
-            width: 20, 
-            inMany: true
-        },
-        {
-            id: 'icon', 
-            type: 'text', 
-            label: 'Icon', 
-            description: 'File name for icon representing table', 
-            maxLength: 50,
-            required: true,
             width: 20, 
             inMany: true
         },
         {
             id: 'table', 
             type: 'text',   // s/b type entity
-            label: 'Table', 
+            label: 'Database table', 
             description: 'Name used to open table', 
             maxLength: 50,
-            required: true, 
+            width: 20, 
+            inMany: true
+        },
+        {
+            id: 'icon', 
+            type: 'image', 
+            label: 'Icon', 
+            description: 'Icon representing table', 
+            maxLength: 20,
+            width: 20, 
+            inMany: true
+        },
+        {
+            id: 'content', 
+            type: 'content', 
+            label: 'Content', 
+            description: 'Data in table', 
+            maxLength: 20,
             width: 20, 
             inMany: true
         },
@@ -86,6 +93,30 @@ module.exports = {
             type: 'textmultiline', 
             label: 'Description', 
             description: 'Text describing purpose of table', 
+            width: 40, 
+            inMany: true
+        },
+        {
+            id: 'searchFields', 
+            type: 'json', 
+            label: 'Search fields', 
+            description: 'Fields for searching', 
+            width: 40, 
+            inMany: true
+        },
+        {
+            id: 'fields', 
+            type: 'json', 
+            label: 'Data fields', 
+            description: 'Fields for storing data', 
+            width: 40, 
+            inMany: true
+        },
+        {
+            id: 'groups', 
+            type: 'json', 
+            label: 'Display groups', 
+            description: 'Groups for displaying fields', 
             width: 40, 
             inMany: true
         },

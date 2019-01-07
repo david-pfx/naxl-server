@@ -10,6 +10,14 @@ test('First smoke test!', t => {
     t.end()
 })
 
+runtest.GetOk('table list', '/api/v1/table', (res, t) => {
+    t.equal(res.body.length, 7, 'rows returned')
+    let row0 = res.body[0]
+    t.equal(row0._full_count, 7, 'full count')
+    t.equal(row0.label, 'Address Book', 'first item')
+    t.equal(row0.table, 'contact', 'first item')
+})
+
 runtest.GetOk('todo list', '/api/v1/todo', (res, t) => {
     t.equal(res.body.length, 21, 'rows returned')
     let row0 = res.body[0]

@@ -31,13 +31,14 @@ var ft = {
 	email: 'email',
 	image: 'image',
 	//geoloc: 'geolocation',
-	//doc:'document',
+	doc:'document',
 	url: 'url',
 	color: 'color',
 	hidden: 'hidden',
 	json: 'json',
 	//rating: 'rating',
 	//widget: 'widget'
+	content: 'content',		// special for uploading new table
 };
 
 // - fields for comments, ratings...
