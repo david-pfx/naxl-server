@@ -7,6 +7,16 @@ Evolutility-Server-Node provides a set of generic REST endpoints for CRUD (Creat
 For a matching model-driven Web UI, use [Evolutility-UI-React](http://github.com/evoluteur/evolutility-ui-react) or [Evolutility-UI-jQuery](http://github.com/evoluteur/evolutility-ui-jquery).
 
 
+### Table of Contents
+1. [Installation](#Installation)
+2. [Setup](#Setup)
+3. [Configuration](#Configuration)
+4. [Models](#Models)
+5. [API](#API)
+6. [License](#License)
+
+
+<a name="Installation"></a>
 ## Installation
 
 [Download](https://github.com/evoluteur/evolutility-server-node/archive/master.zip) or clone from GitHub.
@@ -22,7 +32,7 @@ or use the [npm package](https://www.npmjs.com/package/evolutility-server-node):
 npm install evolutility-server-node
 ```
 
-
+<a name="Setup"></a>
 ## Setup
 
 After installing Evolutility-Server-Node, follow these steps:
@@ -52,6 +62,7 @@ npm start
 In a web browser, go to the url [http://localhost:2000/api/v1/evolutility/todo](http://localhost:2000/api/v1/evolutility/todo).
 
 
+<a name="Configuration"></a>
 ## Configuration
 
 Configuration options are set in the file [config.js](https://github.com/evoluteur/evolutility-server-node/blob/master/config.js).
@@ -73,7 +84,7 @@ Configuration options are set in the file [config.js](https://github.com/evolute
 | wTimestamp | Timestamp columns u_date and c_date w/ date of record creation and last update. |
 
 
-
+<a name="Models"></a>
 ## Models
 
 To be accessible by the REST API, each database table must be described in a model.
@@ -85,10 +96,10 @@ Models contain the name of the driving table and the list of fields/columns pres
 | Property     | Description                             |
 |--------------|-----------------------------------------|
 | id           | Unique key to identify the entity (used as API parameter). |
-| table        | Database table name.                    |
+| table        | Driving database table name (there are secondary tables for fields of type "lov"). |
 | fields       | Array of fields.                        |
-| titleField    | Field id for the column value used as record title. |
-| searchFields    | Array of field ids for fields used to perform searches.  |  
+| titleField   | Field id for the column value used as record title. |
+| searchFields | Array of field ids for fields used to perform searches.  |  
 
 
 ### Field
@@ -100,6 +111,7 @@ Models contain the name of the driving table and the list of fields/columns pres
 | lovtable     | Table to join to for field value (only for fields of "lov" type). |  
 | lovcolumn    | Column name (in the lovtable) for field value (only for fields of "lov" type). |  
 | lovicon      | Set to True to include icon with LOV items.    |
+| object       | Model id for the object to link to (only for fields of "lov" type).    |
 | type         | Field type is not a database column type but more a UI field type. Possible field types: <ul><li>boolean</li><li>date</li><li>datetime</li><li>decimal</li><li>document</li><li>email</li><li>image</li><li>integer</li><li>lov (list of values)</li><li>money</li><li>text</li><li>textmultiline</li><li>time</li><li>url</li></ul> |
 | required     | Determines if the field is required for saving.      |
 | readonly     | Prevents field modification.          |                      
@@ -117,11 +129,12 @@ Multiple Master-Details can be specified with collections.
 | id           | Unique key for the collection.        |
 | table        | DB Table to query.      |
 | column       | Column in the detail table to match against id of object. |
-| entity       | Object linked to.                        |
-| order        | "asc/desc" for sorting by the first field in fields.     |
-| fields       | Array of fields.                        |
+| object       | Model id for the object to display (optional).            |
+| order        | "asc"/"desc" for sorting by the first field in fields.      |
+| fields       | Array of fields. Fields in collections do not need all properties of Fields in objects.      |
 
 Example of collection in [Wine cellar](https://github.com/evoluteur/evolutility-server-node/blob/master/models/winecellar.js).
+
 
 ### Sample model
 
@@ -184,6 +197,7 @@ More sample models:
  [Graphic novels inventory](https://github.com/evoluteur/evolutility-server-node/blob/master/models/comics.js). 
  
 
+<a name="API"></a>
 ## API
 Evolutility-Server-Node provides a generic RESTful API for CRUD (Create, Read, Update, Delete) and more.
 It is a partial server-side Javascript implementation of [PostgREST](http://postgrest.com) using [Node.js](https://nodejs.org/en/), [Express](http://expressjs.com/) and [PostgreSQL](http://www.postgresql.org/).
@@ -225,7 +239,7 @@ Adding multiple parameters conjoins the conditions:
 todo?complete=0&duedate=lt.2018-12-24
 ```
 
-Based on field types, a sub-set of the operators below are supported by the API.
+For each field a sub-set of the operators below will be supported by the API (depending field types).
 
 | Operator     | Meaning                 | Example                      |
 |--------------|-------------------------|------------------------------|
@@ -332,12 +346,11 @@ In addition to CRUD, Evolutility-Server-Node provides a few endpoints for Charts
 #### Discovery
 
 Returns the list of Objects and their APIs (only objects flagged active are included).
-This end-point must be enabled in the configuration with {apiInfo: true}.
 
 ```
 GET /
 ```
-
+Note: This end-point must be enabled in the configuration with {apiInfo: true}.
 
 #### Charts
 
@@ -381,6 +394,17 @@ POST /comics/upload/5
 With query parameters: file and "field.id".
 
 
+#### Nested collections
+
+If the model has collections defined, they can be queried with this end-point.
+
+```
+GET /<model.id>/collec/<collection.id>?id=<id>
+
+GET /winecellar/collec/wine_tasting?id=1
+```
+
+
 #### API version
 
 This endpoint gets the API version (as specified in the project's package.json file).
@@ -390,6 +414,7 @@ GET /version
 ```
 
 
+<a name="License"></a>
 ## License
 
 Copyright (c) 2018 [Olivier Giulieri](https://evoluteur.github.io/).

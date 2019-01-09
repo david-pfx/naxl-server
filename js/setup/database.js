@@ -13,8 +13,9 @@ var pg = require('pg'),
     parseConnection = require('pg-connection-string').parse;
     _ = require('underscore'),
     { version, homepage } = require('../../package.json'),
-    dico = require('../utils/dico');
+    { prepModel, fieldTypes} = require('../utils/dico');
 
+    const ft = fieldTypes
 var models = require('../../models/all_models.js');
 var data = require('../../models/data/all_modelsdata.js');
 
@@ -49,9 +50,9 @@ var ft_postgreSQL = {
 
 
 
-function m2db(mid){
+function model2SQL(mid){
     // -- generates SQL script to create a Postgres DB table for the ui model
-    var m = dico.prepModel(models[mid]),
+    var m = prepModel(models[mid]),
         tableName = m.table || m.id,
         tableNameSchema = schema+'."'+tableName+'"',
         fieldsAttr = {},
@@ -69,11 +70,11 @@ function m2db(mid){
             // skip fields specified in config
             if(['c_date','u_date','c_uid','u_uid','nb_comments','nb_ratings','avg_ratings'].indexOf(f.column)<0){
                 sql0=' "'+f.column+'" '+(ft_postgreSQL[f.type]||'text');
-                if(f.type==='lov'){
+                if(f.type===ft.lov){
                         sqlIdx += 'CREATE INDEX idx_'+tableName+'_'+f.column.toLowerCase()+
                             ' ON '+schema+'."'+tableName+'" USING btree ("'+f.column+'");\n';
                 }
-                if(f.required && f.type!='lov'){
+                if(f.required && f.type!==ft.lov){
                     sql0+=' not null';
                 }
                 fs.push(sql0);
@@ -136,10 +137,10 @@ function m2db(mid){
                 if(f && fid!=='id'){
                     v = row[fid];
                     ns.push('"'+(f.column || f.id)+'"');
-                    if(f.type==='lov'){
+                    if(f.type===ft.lov){
                         //TODO: parseint?
                         v=v||'null'//"['error']";
-                    }else if(f.type==='json'){
+                    }else if(f.type===ft.json){
                         v = "'"+ JSON.stringify(v) +"'";
                     }else if(_.isArray(v)){
                         // TODO: 
@@ -168,26 +169,29 @@ function m2db(mid){
     }
 
     var lovFields=fields.filter(function(f){
-        return (f.type==='lov' || f.type==='list') && !f.entity
+        return (f.type===ft.lov || f.type===ft.list) && !f.object
     })
     var lovIncluded=[]
     if(lovFields){
         lovFields.forEach(function(f, idx){
             var t = lovTable(f);
+            var icons = f.lovicon || false;
             if(lovIncluded.indexOf(t)<0){
                 // - create lov table
                 // TODO: iconfont
                 sql += 'CREATE TABLE IF NOT EXISTS '+t+
                         '(id serial NOT NULL, '+
                         'name text NOT NULL,'+
-                        'icon text,'+
+                        (icons?'icon text,':'')+
                         ' CONSTRAINT '+(tableName+'_'+f.id).toLowerCase()+'_pkey PRIMARY KEY (id));\n\n';
-                // populate lov table
+                
+                // - populate lov table
+                const insertSQL = 'INSERT INTO '+t+'(id, name'+(icons ? ', icon':'')+') VALUES ';
                 if(f.list){
-                    sql += 'INSERT INTO '+t+'(id, name, icon) VALUES ';
+                    sql += insertSQL;
                     sql += f.list.map(function(item){
                         return '(' + item.id + ',' + stringValue(item.text) + 
-                            ',\'' + (item.icon||'') + '\')'
+                            (icons ? ',\'' + (item.icon || '')+ '\'' : '') + ')'
                     }).join(',\n')+';\n\n';
                 }
                 lovIncluded.push(t)
@@ -208,7 +212,7 @@ if(config.wTimestamp){
 }
 
 for(var mid in models){
-    var sqls = m2db(mid);
+    var sqls = model2SQL(mid);
     sql += sqls[0]
     sqlData += sqls[1]
 }
