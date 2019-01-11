@@ -1,13 +1,24 @@
 // simmple.js -- unit testing smoke test or debugging
 
-var util = require('util')
-var request = require('supertest')
-var test = require('tape')
+let util = require('util')
+let request = require('supertest')
+let test = require('tape')
+let FormData = require('form-data')
+let fs = require('fs')
 
-var runtest = require('./common')
+let runtest = require('./common')
 
 test('First smoke test!', t => {
     t.end()
+})
+
+let form = new FormData()
+form.append('filename', fs.readFileSync('./test/testfile100.txt'))
+//form.append('filename', fs.createReadStream('./testfile100.txt'))
+console.log('form', form)
+runtest.PostOk('upload file', '/api/v1/upload/comics/0?field=icon', form, (res, t) => {
+    t.equal(typeof res.body, 'string', 'single string')
+    let row0 = res.body
 })
 
 runtest.GetOk('table list', '/api/v1/table', (res, t) => {

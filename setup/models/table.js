@@ -107,7 +107,7 @@ module.exports = {
         {
             id: 'fields', 
             type: 'json', 
-            label: 'Data fields', 
+            label: 'Content fields', 
             description: 'Fields for storing data', 
             width: 40, 
             inMany: true
