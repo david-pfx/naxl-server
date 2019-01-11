@@ -5,6 +5,7 @@
 
 module.exports = {
 	"id": "test",
+	"label": "Test data",
 	"table": "z_test",
 	"titleField": "name",
 	"fields": [
