@@ -566,6 +566,8 @@ function statsMany(req, res) {
 
 module.exports = {
 
+    promiseModel,
+
     // - CRUD
     getMany: getMany,
     getOne: getOne,
