@@ -16,7 +16,8 @@ const dico = require('./utils/dico'),
     config = require('../config')
 
 const dbpath = './nedb-data/',
-    tables_name = 'table'
+    tables_name = 'table',
+    ft = dico.fieldTypes
 
 const defaultPageSize = config.pageSize || 50,
     lovSize = config.lovSize || 100
@@ -38,7 +39,7 @@ function lookupDict(lookup) {
 }
 
 function lovFields(model) {
-    return model.fields.filter(f => f.type == 'lov')
+    return model.fields.filter(f => f.type == ft.lov)
 }
 
 function csvHeader(fields){
@@ -46,7 +47,7 @@ function csvHeader(fields){
         lovs = {}
 
     fields.forEach((f) => {
-        if(f.type==='lov'){
+        if(f.type===ft.lov){
             h[f.id] = fieldId(f)+' ID'
             h[f.id+'_txt'] = fieldId(f)
         }else{
@@ -135,7 +136,7 @@ function orderBy(model, order) {
 function prepareRecord(data, model) {
     // remove formula fields -- recalculated as needed
     model.fields.forEach(f => {
-        if (f.type == 'formula')
+        if (f.type == ft.formula)
             delete data[f.id]
     })
     return data
@@ -158,14 +159,15 @@ function prepareKey(id) {
 
 // field type json must be stringified for transmission
 function unJson(data, fields) {
-    fields.filter(f => f.type == 'json').forEach(f => {
+    fields.filter(f => f.type == ft.json).forEach(f => {
         data.forEach(r => {
             r[f.id] = JSON.stringify(r[f.id])
         })
     })
     return data
 }
-// augment the result set by the addition of joined fields on lov tables
+// augment the result set by joining on list of fields provided
+// target is field.list, else table field.lovtable
 // look up value in this field on lovtable._id
 // replace with lovtable.name (normal tables) or lovtable.text (lov tables)
 // output goes in new field.id + _txt
@@ -173,7 +175,7 @@ function joinResult(res, results, format, fields) {
     if (fields.length == 0) return sendResult(res, results, format)
     let field = fields.shift()
     let txtfld = field.id + '_txt'
-    if (field.list){
+    if (field.list) {
         join(results, field.list, field, txtfld)
         joinResult(res, results, format, fields)
     } else {
@@ -254,7 +256,7 @@ function summariseResult(docs, model) {
                     return acc + (row[f.id] ? 1 : 0);
                 }, 0);
                 result[f.id + '_avg'] = sum / count;
-                if (f.type == 'money' || f.type == 'integer')
+                if (f.type == ft.money || f.type == ft.int)
                     result[f.id + '_sum'] = sum;
             }
             result[f.id + '_min'] = docs.reduce((acc, row) => {
@@ -514,17 +516,22 @@ function chartField(req, res) {
             ungetDb(table)
             logger.log(entity, err, docs.length)
             if (err) return sendError(res, 'db error: ' + err)
-            if (field.type == 'lov') {
-                let db2 = getDb(field.lovtable)
-                db2.find({ }, (err, lov) => {
-                    ungetDb(field.lovtable)
-                    if (err) return sendError(res, 'db error: ' + err)
-                    let results = groupResult(docs, field, lookupDict(lov));
+            if (field.type == ft.lov) {
+                if (field.list) {
+                    let results = groupResult(docs, field, lookupDict(field.list));
                     sendResult(res, results, { })
-                })
+                } else {
+                    let db2 = getDb(field.lovtable)
+                    db2.find({ }, (err, lov) => {
+                        ungetDb(field.lovtable)
+                        if (err) return sendError(res, 'db error: ' + err)
+                        let results = groupResult(docs, field, lookupDict(lov));
+                        sendResult(res, results, { })
+                    })
+                }
             } else {
                 const boolookup = { false: 'No', true: 'Yes'}
-                let results = groupResult(docs, field, (field.type == 'boolean') ? boolookup : null);
+                let results = groupResult(docs, field, (field.type == ft.bool) ? boolookup : null);
                 sendResult(res, results, { })
             }
         })

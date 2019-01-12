@@ -118,6 +118,17 @@ runtest.GetOk('todo chart', '/api/v1/todo/chart/category', (res, t) => {
 runtest.GetOk('todo chart category', '/api/v1/todo/chart/category', (res, t) => {
     t.equal(res.body.length, 5, 'rows returned')
     let row0 = res.body[0]
+    t.equal(row0.id, 3, 'first item id')
+    t.equal(row0.label, 'Fun', 'first item label')
+    t.equal(row0.value, 2, 'first item value')
+})
+
+runtest.GetOk('todo chart complete', '/api/v1/todo/chart/complete', (res, t) => {
+    t.equal(res.body.length, 3, 'rows returned')
+    let row0 = res.body[0]
+    t.equal(row0.id, 1, 'first item id')
+    t.equal(row0.label, 'No', 'first item label')
+    t.equal(row0.value, 9, 'first item value')
 })
 
 runtest.GetOk('todo chart priority', '/api/v1/todo/chart/priority', (res, t) => {
