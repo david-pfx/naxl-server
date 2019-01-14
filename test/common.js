@@ -78,10 +78,26 @@ function GetOkCsv(name, api, testfun) {
     })
 }
 
+function FormOk(name, api, filename, filepath, testfun) {
+    test(`======== ${name} === ${api} ========`, t => {
+        request(app)
+            .post(api)
+            .attach(filename, filepath)
+            .expect(200)
+            .expect('Content-Type', /json/)
+            .end((err, res) => {
+                t.error(err, 'no error')
+                testfun(res, t)
+                t.end()
+            })
+    })
+}
+
 module.exports = {
     GetOk: GetOk,
     GetOkCsv: GetOkCsv,
     DeleteOk: DeleteOk,
     PostOk: PostOk,
-    PutOk: PutOk
+    PutOk: PutOk,
+    FormOk,
 }

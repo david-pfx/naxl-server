@@ -16,7 +16,8 @@
     "setup-nedb": "node ./setup/nedb-setup",
     "start": "supervisor -n exit ./bin/www",
     "startd": "set DEBUG=express:* && supervisor -n exit ./bin/www",
-    "smoke": "node test/smoke",
+    "smokex": "node test/smoke",
+    "smoke": "rm ../naxl-ui/public/pix/test/*.* && node test/smoke",
     "test": "node test/index",
     "tests": "node ./setup/nedb-setup && node test/index",
     "testd": "set DEBUG=express:* && node test/index"
