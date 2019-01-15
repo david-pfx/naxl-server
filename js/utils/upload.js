@@ -11,9 +11,11 @@ const path = require('path'),
     shortid = require('shortid'),
     fs = require('fs'),
     dico = require('./dico'),
+    ft = dico.fieldTypes,
     logger = require('./logger'),
     config = require('../../config.js'),
-    { promiseModel, sendError } = require('../nedb-crud')
+    { promiseModel, sendError } = require('../nedb-crud'),
+    parseContent = require('./parse-content')
 
 module.exports = {  
 
@@ -23,25 +25,28 @@ module.exports = {
 
         const entity = req.params.entity,
             id = req.params.id,
+            fieldid = req.query.field,
             form = new formidable.IncomingForm()
-        let fname,
-            ffname,
-            dup = false;
 
+        //logger.log('upload', entity, id, form.uploadDir, form.encoding, form.type)
         promiseModel(entity)
         .then(m => {
+            let originalName,
+                fname,
+                ffname,
+                dup = false
+
             form.multiples = false;
             form.uploadDir = path.join(config.uploadPath, '/'+m.modelid);
 
             form.on('file', function(field, file) {
-                fname = file.name;
+                fname = originalName = file.name;
                 ffname = form.uploadDir+'/'+fname;
 
                 if(fs.existsSync(ffname)){
                     // - if duplicate name do not overwrite file but postfix name
                     let idx = ffname.lastIndexOf('.')
-                    const xtra = '_'+shortid.generate(),
-                        originalName = fname;
+                    const xtra = '_'+shortid.generate()
 
                     dup = true;
                     ffname = idx ? (ffname.slice(0, idx)+xtra+ffname.slice(idx)) : (ffname+xtra);
@@ -55,12 +60,21 @@ module.exports = {
             })
             .on('end', function(){
                 logger.logSuccess('Saved file: "'+ffname+'".')
-                res.json({
+                let result = {
                     duplicate: dup,
                     fileName: fname,
                     id: id,
-                    model: m.modelid
-                });
+                    model: m.modelid,
+                }
+                let field = m.fieldsH[fieldid]
+                if (field.type === ft.content) {
+                    parseContent.parseCsv(ffname, (data, err) => {
+                        if (err) throw err;
+                        result.newmodel = parseContent.createModel(originalName, data[0])
+                        //logger.log('upload', result)
+                        res.json(result)
+                    })
+                } else res.json(result);
             })
             .on('error', function(err) {
                 logger.logError(err);

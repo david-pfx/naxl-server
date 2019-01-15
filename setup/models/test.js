@@ -165,6 +165,13 @@ module.exports = {
 			"label": "Image",
 			"inMany": true,
 			"column": "f_image"
+		},
+		{
+			"id": "content",
+			"type": "content",
+			"label": "Content",
+			"inMany": true,
+			"column": "f_content"
 		}
 	],
 	"collections": []

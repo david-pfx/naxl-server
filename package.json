@@ -18,8 +18,8 @@
     "startd": "set DEBUG=express:* && supervisor -n exit ./bin/www",
     "smokex": "node test/smoke",
     "smoke": "rm ../naxl-ui/public/pix/test/*.* && node test/smoke",
-    "test": "node test/index",
-    "tests": "node ./setup/nedb-setup && node test/index",
+    "test": "rm ../naxl-ui/public/pix/test/*.* && node test/index",
+    "tests": "rm ../naxl-ui/public/pix/test/*.* && node ./setup/nedb-setup && node test/index",
     "testd": "set DEBUG=express:* && node test/index"
   },
   "keywords": [
@@ -44,6 +44,7 @@
     "body-parser": "~1.18.3",
     "chalk": "~2.4.1",
     "csv-express": "^1.2.2",
+    "csv-parser": "^2.1.0",
     "debug": "~3.1.0",
     "express": "~4.16.3",
     "express-csv": "~0.6.0",

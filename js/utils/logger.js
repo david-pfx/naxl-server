@@ -88,6 +88,7 @@ module.exports = {
 		}
 	},
 
+	// log to console but only if enabled
 	log: function(...args) {
 		if (consoleLog)
 			console.log(...args)

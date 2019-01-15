@@ -12,7 +12,7 @@ test('Begin smoke test!', t => {
     t.end()
 })
 
-runtest.FormOk('upload image', '/api/v1/test/upload/0?field=icon', 'filename', './test/testing.png', (res, t) => {
+runtest.FormOk('upload image', '/api/v1/test/upload/0?field=image', 'filename', './test/testing.png', (res, t) => {
     let result = res.body
     t.false(result.dup)
     t.equal(result.fileName, 'testing.png')
@@ -20,7 +20,7 @@ runtest.FormOk('upload image', '/api/v1/test/upload/0?field=icon', 'filename', '
     t.equal(result.model, 'test')
 })
 
-runtest.FormOk('upload document', '/api/v1/test/upload/0?field=doc', 'filename', './test/testfile100.txt', (res, t) => {
+runtest.FormOk('upload document', '/api/v1/test/upload/0?field=document', 'filename', './test/testfile100.txt', (res, t) => {
     let result = res.body
     t.false(result.dup)
     t.equal(result.fileName, 'testfile100.txt')
@@ -30,10 +30,12 @@ runtest.FormOk('upload document', '/api/v1/test/upload/0?field=doc', 'filename',
 
 runtest.FormOk('upload CSV', '/api/v1/test/upload/2?field=content', 'filename', './test/member.csv', (res, t) => {
     let result = res.body
-    t.false(result.dup)
-    t.equal(result.fileName, 'member.csv')
-    t.equal(result.id, '2')
-    t.equal(result.model, 'test')
+    t.false(result.dup, 'dup')
+    t.equal(result.fileName, 'member.csv','filename')
+    t.equal(result.id, '2', 'id')
+    t.equal(result.model, 'test', 'model')
+    t.equal(result.newmodel.id, 'member', 'new id')
+    t.equal(result.newmodel.label, 'Member', 'new label')
 })
 
 runtest.GetOkCsv('todo get csv', '/api/v1/todo?format=csv', (res, t) => {
