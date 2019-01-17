@@ -43,19 +43,21 @@ module.exports = {
 
         // get rid of known extension
         let name = filename.replace(/[.]csv$/i, '')
-        return {
-            "id": name.toLowerCase(),
+        // create fields from CSV row
+        let fields = Object.keys(row).map((value, index) => {
+            return {
+                "id": value.toLowerCase(),
+                "type": "text",
+                "label": tc(value),
+                "inMany": true,
+            }
+        })
+        return result = {
+            "entity": name.toLowerCase(),
             "active": true,  // set later?
             "label": tc(name),
-            "fields": Object.keys(row).map((value, index) => {
-                return {
-                    "id": value.toLowerCase(),
-                    "type": "text",
-                    "label": tc(value),
-                    "inMany": true,
-                }
-            })
-        
-        }
+            "kind": 1,
+            "fields": fields
+        }        
     }
 }

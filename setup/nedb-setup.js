@@ -41,13 +41,13 @@ function writeTable(name, data) {
 }
 
 // add a row to the table of tables
-// note that in the table id===_id and modelid carries the id for the model.
+// note that in the table id===_id and entity is the id for the model.
 function addTable(model, kind, desc) {
     let dbtid = tables.length + 1
     let record = Object.assign({}, model, {
         _id: dbtid,
         id: dbtid,
-        modelid: model.id,
+        entity: model.id,
         kind: (kind == 'entity') ? 1 : 2,
         description: desc
     })

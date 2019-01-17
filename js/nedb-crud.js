@@ -64,7 +64,7 @@ function promiseModel(entity) {
         if (model) resolve(model)
         else {
             let db = getDb(tables_name)
-            db.find({ modelid: entity }, (err, docs) => {
+            db.find({ entity: entity }, (err, docs) => {
                 ungetDb(tables_name)
                 if (err) reject('db error: ' + err)
                 else if (!docs.length) reject('Invalid entity: "' + entity + '".')
@@ -157,15 +157,6 @@ function prepareKey(id) {
     return (+id > 0) ? { _id: +id } : { id: id }
 }
 
-// field type json must be stringified for transmission
-function unJson(data, fields) {
-    fields.filter(f => f.type == ft.json).forEach(f => {
-        data.forEach(r => {
-            r[f.id] = JSON.stringify(r[f.id])
-        })
-    })
-    return data
-}
 // augment the result set by joining on list of fields provided
 // target is field.list, else table field.lovtable
 // look up value in this field on lovtable._id
@@ -311,7 +302,7 @@ function getMany(req, res) {
         // TODO: make sort case-insensitive
         db.find({}).sort(orderby).exec((err, docs) => {
             if (err) return sendError(res, 'db error: ' + err)
-            joinResult(res, unJson(docs, model.fields), { 
+            joinResult(res, docs, { 
                 csv: csvheader , single: false, count: total_count 
             }, lovFields(model))
         })
@@ -339,7 +330,7 @@ function getOne(req, res) {
         db.find(prepareKey(id), (err, docs) => {
             ungetDb(table)
             if (err) return sendError(res, 'db error: ' + err)
-            joinResult(res, unJson(docs, model.fields), { single: true }, lovFields(model))
+            joinResult(res, docs, { single: true }, lovFields(model))
         })
     })
     .catch(err => { return sendError(res, err) })
@@ -396,10 +387,13 @@ function updateOne(req, res) {
         let record = prepareRecord(req.body, model)
         let key = prepareKey(id)
         let db = getDb(table)
-        db.update(key, record, (err, num) => {
+        db.update(key, { $set: record }, (err, num) => {
             ungetDb(table)
             if (err) return sendError(res, 'db error: ' + err)
-            sendResult(res, [{ id: key._id || key.id }], { single: true })
+            db.find(key, (err, docs) => {
+                if (err) return sendError(res, 'db error: ' + err)
+                joinResult(res, docs, { single: true }, lovFields(model))
+            })
         })
     })
     .catch(err => { return sendError(res, err) })

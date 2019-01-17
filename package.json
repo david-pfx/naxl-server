@@ -18,6 +18,7 @@
     "startd": "set DEBUG=express:* && supervisor -n exit ./bin/www",
     "smokex": "node test/smoke",
     "smoke": "rm ../naxl-ui/public/pix/test/*.* && node test/smoke",
+    "smokes": "rm -f ../naxl-ui/public/pix/test/*.* && node ./setup/nedb-setup && node test/smoke",
     "test": "rm ../naxl-ui/public/pix/test/*.* && node test/index",
     "tests": "rm ../naxl-ui/public/pix/test/*.* && node ./setup/nedb-setup && node test/index",
     "testd": "set DEBUG=express:* && node test/index"

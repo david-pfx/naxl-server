@@ -13,7 +13,7 @@ module.exports = {
             type: 'text', 
             label: 'Collection Name', 
             description: 'Displayed name for entire table', 
-            maxLength: 50,
+            maxLength: 30,
             required: true,
             width: 20, 
             inMany: true
@@ -23,8 +23,7 @@ module.exports = {
             type: 'text', 
             label: 'Item Name', 
             description: 'Displayed name for single item', 
-            maxLength: 50,
-            required: true,
+            maxLength: 30,
             width: 20, 
             inMany: true
         },
@@ -33,8 +32,7 @@ module.exports = {
             type: 'text', 
             label: 'Items (plural) name', 
             description: 'Displayed name for multiple items', 
-            maxLength: 50,
-            required: true,
+            maxLength: 30,
             width: 20, 
             inMany: true
         },
@@ -66,7 +64,7 @@ module.exports = {
             type: 'text',   // s/b type entity
             label: 'Database table', 
             description: 'Name used to open table', 
-            maxLength: 50,
+            maxLength: 30,
             width: 20, 
             inMany: true
         },
@@ -75,16 +73,14 @@ module.exports = {
             type: 'image', 
             label: 'Icon', 
             description: 'Icon representing table', 
-            maxLength: 20,
             width: 20, 
             inMany: true
         },
         {
-            id: 'content', 
+            id: 'source', 
             type: 'content', 
-            label: 'Content', 
-            description: 'Data in table', 
-            maxLength: 20,
+            label: 'Source', 
+            description: 'Source of data in table', 
             width: 20, 
             inMany: true
         },
@@ -100,7 +96,7 @@ module.exports = {
             id: 'searchFields', 
             type: 'json', 
             label: 'Search fields', 
-            description: 'Fields for searching', 
+            description: 'Fields for searching in table', 
             width: 40, 
             inMany: true
         },
@@ -110,7 +106,7 @@ module.exports = {
             label: 'Content fields', 
             description: 'Fields for storing data', 
             width: 40, 
-            inMany: true
+            inMany: false
         },
         {
             id: 'groups', 
@@ -118,7 +114,7 @@ module.exports = {
             label: 'Display groups', 
             description: 'Groups for displaying fields', 
             width: 40, 
-            inMany: true
+            inMany: false
         },
     ]
 };

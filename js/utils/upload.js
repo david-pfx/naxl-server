@@ -37,7 +37,7 @@ module.exports = {
                 dup = false
 
             form.multiples = false;
-            form.uploadDir = path.join(config.uploadPath, '/'+m.modelid);
+            form.uploadDir = path.join(config.uploadPath, '/'+m.entity);
 
             form.on('file', function(field, file) {
                 fname = originalName = file.name;
@@ -64,14 +64,13 @@ module.exports = {
                     duplicate: dup,
                     fileName: fname,
                     id: id,
-                    model: m.modelid,
+                    model: m.entity,
                 }
                 let field = m.fieldsH[fieldid]
                 if (field.type === ft.content) {
                     parseContent.parseCsv(ffname, (data, err) => {
                         if (err) throw err;
-                        result.newmodel = parseContent.createModel(originalName, data[0])
-                        //logger.log('upload', result)
+                        result.newdata = parseContent.createModel(originalName, data[0])
                         res.json(result)
                     })
                 } else res.json(result);
