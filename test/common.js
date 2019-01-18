@@ -9,10 +9,6 @@ var app = require('../app')
 
 module.exports = {
 
-    logger: function(...args) {
-        console.log(...args)
-    },
-
     GetOk: function(name, api, testfun) {
         test(`======== ${name} === ${api} ========`, t => {
             request(app)

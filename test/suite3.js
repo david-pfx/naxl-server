@@ -24,3 +24,19 @@ runtest.DeleteOk('todo delete', '/api/v1/todo/23', (res, t) => {
     t.equal(row0.id, 23, 'id deleted')
 })
 
+runtest.FormOk('upload image', '/api/v1/test/upload/0?field=image', 'filename', './test/testing.png', (res, t) => {
+    let result = res.body
+    t.false(result.dup)
+    t.equal(result.fileName, 'testing.png')
+    t.equal(result.id, '0')
+    t.equal(result.model, 'test')
+})
+
+runtest.FormOk('upload document', '/api/v1/test/upload/0?field=document', 'filename', './test/testfile100.txt', (res, t) => {
+    let result = res.body
+    t.false(result.dup)
+    t.equal(result.fileName, 'testfile100.txt')
+    t.equal(result.id, '0')
+    t.equal(result.model, 'test')
+})
+

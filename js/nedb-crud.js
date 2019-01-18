@@ -1,11 +1,6 @@
-/*! *******************************************************
- *
- * evolutility-server-node :: crud.js
- * CRUD (Create, Read, Update, Delete) end-points
- *
- * https://github.com/evoluteur/evolutility-server-node
- * (c) 2018 Olivier Giulieri
- ********************************************************* */
+// CRUD endpoints for nedb
+
+// 2019 David M. Bennett
 
 const nedb = require('nedb'),
     csv = require('csv-express')        // later fork on express-csv
@@ -13,11 +8,10 @@ const nedb = require('nedb'),
 const dico = require('./utils/dico'),
     errors = require('./utils/errors'),
     logger = require('./utils/logger'),
-    config = require('../config')
+    config = require('../config'),
+    { getDb, ungetDb, prepareAdd, promiseModel } = require('./utils/nedb-util')
 
-const dbpath = './nedb-data/',
-    tables_name = 'table',
-    ft = dico.fieldTypes
+const ft = dico.fieldTypes
 
 const defaultPageSize = config.pageSize || 50,
     lovSize = config.lovSize || 100
@@ -57,26 +51,6 @@ function csvHeader(fields){
     return h
 }
 
-// get model, check for error
-function promiseModel(entity) {
-    return new Promise(function(resolve, reject) {
-        let model = dico.getModel(entity)
-        if (model) resolve(model)
-        else {
-            let db = getDb(tables_name)
-            db.find({ entity: entity }, (err, docs) => {
-                ungetDb(tables_name)
-                if (err) reject('db error: ' + err)
-                else if (!docs.length) reject('Invalid entity: "' + entity + '".')
-                else {
-                    let model = dico.prepModel(docs[0])
-                    resolve(model)
-                }
-            })
-        }
-    })
-}
-
 function getCollection(model, name) {
     if (!model.collecsH[name]) return { error: 'Invalid collection: "' + name + '".' }
     return model.collecsH[name]
@@ -89,31 +63,10 @@ function getField(model, name) {
     return field
 }
 
-// cache for db handles
-let dbCache = {}
-
 // return a bad request error and clear db handle cache
 function sendError(res, msg) {
     dbCache = {}
     errors.badRequest(res, msg)
-}
-
-// get db store for entity
-// cache and reuse db handle
-function getDb(name) {
-    if (dbCache[name]) {
-        dbCache[name].use++
-        return dbCache[name].db
-    }
-    let db = new nedb({ filename: dbpath + name + '.db' })
-    db.loadDatabase(err => { if (err) logger.log(err) })
-    dbCache[name] = { db: db, use: 1 }
-    return db
-}
-
-function ungetDb(name) {
-    if (--dbCache[name].use <= 0) 
-        delete dbCache[name]
 }
 
 // parse somefield.asc, into { somefield: 1, }
@@ -139,15 +92,6 @@ function prepareRecord(data, model) {
         if (f.type == ft.formula)
             delete data[f.id]
     })
-    return data
-}
-
-// _id is the required key, always an integer, use id if possible
-// id is the required user-visible key, same as _id if missing
-function prepareAdd(data, id) {
-    data._id = (+data.id > 0) ? +data.id : id
-    if (!data.id) data.id = data._id
-    else if (+data.id > 0) data.id = +data.id
     return data
 }
 

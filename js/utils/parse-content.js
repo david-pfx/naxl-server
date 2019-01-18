@@ -12,10 +12,10 @@ function logall(...args) {
 
 module.exports = {
     // get a single item
-    parseCsv: function(filePath, cb) {
+    parseCsv: function(filePath, cbok, cberr) {
         logall('parseCsv', filePath)
         let input = fs.createReadStream(filePath)
-        if (!input) return cb(null, `cannot open ${filePath}`)
+        if (!input) return cberr(`cannot open ${filePath}`)
         let parser = parse({
             columns: true,
             to: 10,
@@ -28,11 +28,11 @@ module.exports = {
         })
         .on('error', err => {
             logall('parseCsv', err)
-            cb(output, err)
+            cberr(err)
         })
         .on('end', () => {
             logall('parseCsv', output.length)
-            cb(output)
+            cbok(output)
         })
     },
 
@@ -44,11 +44,11 @@ module.exports = {
         // get rid of known extension
         let name = filename.replace(/[.]csv$/i, '')
         // create fields from CSV row
-        let fields = Object.keys(row).map((value, index) => {
+        let fields = Object.keys(row).map(k => {
             return {
-                "id": value.toLowerCase(),
+                "id": k,
                 "type": "text",
-                "label": tc(value),
+                "label": tc(k),
                 "inMany": true,
             }
         })
@@ -59,5 +59,5 @@ module.exports = {
             "kind": 1,
             "fields": fields
         }        
-    }
+    },   
 }

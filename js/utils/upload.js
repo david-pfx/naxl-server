@@ -14,7 +14,8 @@ const path = require('path'),
     ft = dico.fieldTypes,
     logger = require('./logger'),
     config = require('../../config.js'),
-    { promiseModel, sendError } = require('../nedb-crud'),
+    { sendError } = require('../nedb-crud'),
+    { promiseModel, writeTable } = require('./nedb-util'),
     parseContent = require('./parse-content')
 
 module.exports = {  
@@ -68,11 +69,19 @@ module.exports = {
                 }
                 let field = m.fieldsH[fieldid]
                 if (field.type === ft.content) {
-                    parseContent.parseCsv(ffname, (data, err) => {
-                        if (err) throw err;
-                        result.newdata = parseContent.createModel(originalName, data[0])
-                        res.json(result)
-                    })
+                    parseContent.parseCsv(ffname, 
+                        data => {
+                            result.newdata = parseContent.createModel(originalName, data[0])
+                            writeTable(result.newdata.entity, data, 
+                                count => { 
+                                    result.count = count
+                                    res.json(result) 
+                                },
+                                err => { throw err }
+                            )
+                        },
+                        err => { throw err }
+                    )
                 } else res.json(result);
             })
             .on('error', function(err) {
