@@ -6,15 +6,14 @@
 
 var app = require('../app');
 var config = require('../config');
-var debug = require('debug')('naxl:server');
+var debug = require('debug')('evolutility:server');
 var http = require('http');
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = config.apiPort
-//var port = normalizePort(process.env.PORT || config.apiPort || '3000');
+var port = normalizePort(config.apiPort || '2000');
 app.set('port', port);
 
 /**

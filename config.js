@@ -1,14 +1,10 @@
 // Configuration file for server
 
-// make port settable
-let setport = process.env.APIPORT || '2000'
-
 module.exports = {
 
 	// Path to REST API
 	apiPath: '/api/v1/',
-	apiPort: setport,
-	//apiPort: 2000,
+	apiPort: process.env.PORT || 2000,
 
 	// DB connection
 	connectionString: process.env.DATABASE_URL || 'postgres://postgres:xxxx@localhost:5432/naxl-test', 
