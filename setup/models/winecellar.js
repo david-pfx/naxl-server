@@ -28,7 +28,7 @@ module.exports = {
 		},
 		{
 			"type": "panel",
-			"label": "Wine",
+			"label": "Winery",
 			"width": 80,
 			"fields": [
 				"winery",
