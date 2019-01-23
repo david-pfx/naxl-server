@@ -77,8 +77,38 @@ runtest.FormOk('upload CSV', '/api/v1/test/upload/2?field=content', 'filename', 
     t.equal(result.fileName, 'member.csv','filename')
     t.equal(result.id, '2', 'id')
     t.equal(result.model, 'test', 'model')
+    t.assert(result.newdata, 'new data')
     t.equal(result.newdata.entity, 'member', 'new id')
     t.equal(result.newdata.label, 'Member', 'new label')
+})
+
+runtest.GetOk('wines item', '/api/v1/winecellar/5', (res, t) => {
+    let row0 = res.body
+    t.equal(row0.id, 5, 'first item id')
+    t.equal(row0.name, 'Château Montelena', 'first item name')
+    t.equal(row0.vintage, 2005, 'first item vintage')
+})
+
+runtest.GetOk('wine tasting list', '/api/v1/winetasting', (res, t) => {
+    t.equal(res.body.length, 11, 'rows returned')
+    let row0 = res.body[0]
+    t.equal(row0.id, 10, 'first item id')
+    t.equal(row0.drink_date, '2015-05-05', 'drink date')
+    t.equal(row0.wine_id, 5, 'wine id')
+    t.equal(row0.wine_id_txt, 'Château Montelena', 'wine name')
+})
+
+// LOV
+runtest.GetOk('todo category lov', '/api/v1/todo/lov/category', (res, t) => {
+    t.equal(res.body.length, 5, 'rows returned')
+})
+
+// COLLECTIONS
+runtest.GetOk('wines collection', '/api/v1/winecellar/collec/wine_tasting?id=5', (res, t) => {
+    t.equal(res.body.length, 2, 'rows returned')
+    let row0 = res.body[0]
+    logger.log(row0)
+    t.equal(row0.id, 10, 'first item id')
 })
 
 // let data = { entity: "member", kind: 1, source: 'table/member.csv' }

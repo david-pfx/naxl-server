@@ -68,7 +68,7 @@ module.exports = {
                     model: m.entity,
                 }
                 let field = m.fieldsH[fieldid]
-                if (field.type === ft.content) {
+                if (field && field.type === ft.content) {
                     parseContent.parseCsv(ffname, 
                         data => {
                             result.newdata = parseContent.createModel(originalName, data[0])

@@ -111,27 +111,28 @@ function joinResult(res, results, format, fields) {
     let field = fields.shift()
     let txtfld = field.id + '_txt'
     if (field.list) {
-        join(results, field.list, field, txtfld)
+        join(results, field.list, field.id, txtfld)
         joinResult(res, results, format, fields)
-    } else {
-        if (!field.lovtable) 
-            logger.log(`bad lovtable field ${field}`)
-        logger.log('join', field.lovtable, field.id, txtfld)
-        let db = getDb(field.lovtable)
+    } else  if (field.lovtable) {
+        let lovtable = field.lovtable
+        logger.log('join', lovtable, field.id, txtfld)
+        let db = getDb(lovtable)
         db.find({ }, (err, docs) => {
-            ungetDb(field.lovtable)
+            ungetDb(lovtable)
             if (err) return sendError(res, 'db error: ' + err)
-            join(results, docs, field, txtfld)
+            join(results, docs, field.id, txtfld)
             joinResult(res, results, format, fields)
         })
-    }
+    } else 
+        logger.logError('bad lovtable field', field)
+
 }
 
 // add new field from lookup to data 
 function join(data, lookup, field, txtfld) {
     var dict = lookupDict(lookup)
     data.forEach(row => {
-        row[txtfld] = dict[row[field.id]] || row[field.id]
+        row[txtfld] = dict[row[field]] || row[field]
     })
 }
 

@@ -16,7 +16,6 @@ runtest.GetOk('table list', '/api/v1/table', (res, t) => {
     let row0 = res.body[0]
     t.equal(row0._full_count, 8, 'full count')
     t.equal(row0.label, 'Address Book', 'first item')
-    t.equal(row0.table, 'contact', 'first item')
 })
 
 runtest.GetOk('todo list', '/api/v1/todo', (res, t) => {

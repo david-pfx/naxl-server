@@ -1,46 +1,61 @@
 /*
-  Evolutility DB Model for Test List
-  https://github.com/evoluteur/evolutility-server-node
+  Evolutility UI Model for Test List
+  https://github.com/evoluteur/evolutility-ui-react
 */
-const flavors = [
-    {id: 1, text: "Vanilla"},
-    {id: 2, text: "Chocolate"},
-    {id: 3, text: "Strawberry"},
-    {id: 4, text: "Green Tea"},
-    {id: 5, text: "Lemon Cookie"},
-];
-
-const fields = [
+var lov = [
+	{
+		"id": 1,
+		"text": "Vanilla"
+	},
+	{
+		"id": 2,
+		"text": "Chocolate"
+	},
+	{
+		"id": 3,
+		"text": "Strawberry"
+	},
+	{
+		"id": 4,
+		"text": "Green Tea"
+	},
+	{
+		"id": 5,
+		"text": "Lemon Cookie"
+	}
+]
+var fields = [
 	{
 		"id": "name",
 		"type": "text",
 		"label": "Title",
 		"required": true,
 		"inMany": true,
-		"column": "name"
+		"width": 100,
+		"help": "Name of the object"
 	},
 	{
 		"id": "text",
 		"type": "text",
 		"label": "Text",
 		"inMany": true,
-		"column": "f_text"
+		"width": 50
 	},
 	{
 		"id": "textmultiline",
 		"type": "textmultiline",
 		"label": "Text multiline",
-		"column": "f_textmultiline"
+		"width": 50,
+		"height": 3
 	},
 	{
 		"id": "lov",
 		"type": "lov",
 		"label": "List of Values",
 		"required": true,
-		"list": flavors,
+		"list": lov,
 		"inMany": true,
-		"column": "f_lov",
-		"lovtable": "z_test_flavor"
+		"width": 100
 	},
 	{
 		"id": "parent",
@@ -49,17 +64,17 @@ const fields = [
 		"object": "test",
 		"required": true,
 		"inMany": true,
-		"column": "parent_id",
-		"lovtable": "z_test"
+		"width": 100,
+		"help": "LOV "
 	},
 	{
 		"id": "lovlc",
 		"type": "lov",
 		"label": "Lemon Cookie",
-		"list": flavors,
+		"list": lov,
 		"defaultValue": 5,
-		"column": "f_lovlc",
-		"lovtable": "z_test_flavor"
+		"width": 100,
+		"help": "List of Values with \"Lemon Cookie\" as default value."
 	},
 	{
 		"id": "date",
@@ -67,21 +82,23 @@ const fields = [
 		"label": "Date",
 		"required": true,
 		"inMany": true,
-		"column": "f_date"
+		"width": 100
 	},
 	{
 		"id": "datetime",
 		"type": "datetime",
 		"label": "Date-Time",
 		"inMany": true,
-		"column": "f_datetime"
+		"width": 100,
+		"help": "Date and time as a single field (not implemented yet)."
 	},
 	{
 		"id": "time",
 		"type": "time",
 		"label": "Time",
 		"inMany": true,
-		"column": "f_time"
+		"width": 100,
+		"help": "Time field (not implemented yet)."
 	},
 	{
 		"id": "integer",
@@ -89,67 +106,133 @@ const fields = [
 		"label": "Integer",
 		"required": true,
 		"inMany": true,
-		"column": "f_integer"
+		"width": 100
 	},
 	{
 		"id": "decimal",
 		"type": "decimal",
 		"label": "Decimal",
-		"column": "f_decimal"
+		"width": 100
 	},
 	{
 		"id": "money",
 		"type": "money",
 		"label": "Money",
-		"column": "f_money"
+		"width": 100
 	},
 	{
 		"id": "boolean",
 		"type": "boolean",
 		"label": "Boolean",
 		"inMany": true,
-		"column": "f_boolean"
+		"width": 100
 	},
 	{
 		"id": "email",
 		"type": "email",
 		"label": "email",
 		"inMany": true,
-		"column": "f_email"
+		"width": 50
 	},
 	{
 		"id": "url",
 		"type": "url",
 		"label": "url",
-		"column": "f_url"
+		"width": 50
 	},
 	{
 		"id": "document",
 		"type": "document",
 		"label": "Document",
-		"column": "f_document"
+		"width": 100
 	},
 	{
 		"id": "image",
 		"type": "image",
 		"label": "Image",
 		"inMany": true,
-		"column": "f_image"
+		"width": 100
+	},
+	{
+		"id": "content",
+		"type": "content",
+		"label": "Content",
+		"inMany": true,
 	}
 ]
 
 module.exports = {
 	"id": "test",
-	"table": "z_test",
+	"label": "Test Data",
+	"name": "test",
+	"namePlural": "tests",
+	"icon": "test.gif",
 	"titleField": "name",
 	"fields": fields,
+	"groups": [
+		{
+			"id": "ptxt",
+			"type": "panel",
+			"label": "Text",
+			"width": 62,
+			"fields": [
+				"name",
+				"text",
+				"textmultiline",
+				"email",
+				"url"
+			]
+		},
+		{
+			"id": "plist",
+			"type": "panel",
+			"label": "List of Values",
+			"width": 38,
+			"fields": [
+				"parent",
+				"lov",
+				"lovlc"
+			]
+		},
+		{
+			"id": "pnum",
+			"type": "panel",
+			"label": "Numbers",
+			"width": 31,
+			"fields": [
+				"integer",
+				"decimal",
+				"money",
+				"boolean"
+			]
+		},
+		{
+			"id": "pdate",
+			"type": "panel",
+			"label": "Date & Time",
+			"width": 31,
+			"fields": [
+				"date",
+				"datetime",
+				"time"
+			]
+		},
+		{
+			"id": "ppix",
+			"type": "panel",
+			"label": "Image & Document",
+			"width": 38,
+			"fields": [
+				"image",
+				"document"
+			]
+		}
+	],
 	"collections": [
 		{
 			"id": "children",
-			"table": "z_test",
-			"column": "parent_id",
+			"title": "Children",
 			"object": "test",
-			"order": "desc",
 			"fields": fields.slice(0, 3)
 		}
 	]
