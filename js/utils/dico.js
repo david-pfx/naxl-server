@@ -7,7 +7,8 @@
  * (c) 2019 Olivier Giulieri
  *************************************************************************** */
 
-var config = require('../../config.js');
+var config = require('../../config.js'),
+	logger = require('./logger')
 
 var schema = '"' + config.schema + '"';
 
@@ -118,7 +119,7 @@ function hById(arr){
 }
 
 function prepModel(m){
-	if(m){
+	if(m && m.fields){
 		if(!m.prepared){
 			m.schemaTable = schema+'."'+(m.table || m.id)+'"';
 			m.fieldsH = {}
@@ -143,10 +144,11 @@ function prepModel(m){
 				m.collecsH = hById(m.collections);
 			}
 			m.prepared = true;
+			models[m.entity] = m
 		}
 		return m;
 	}else{
-		console.log('Error in "prepModel": model ="'+m+'".')
+		logger.logError('Error in "prepModel": model ="'+m+'".')
 		return null;
 	}
 }

@@ -8,7 +8,7 @@ const runtest = require('./common'),
 
     logger.setEnable(false)
 
-require('./smoke') 
+//require('./smoke') 
 
 test('Begin tests!', t => {
     t.end()

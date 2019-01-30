@@ -5,7 +5,7 @@
 
 module.exports = {
     table: require('./table'),
-    //field: require('./field'),
+    field: require('./field'),
     todo: require('./todo'),
     contact: require('./contact'),
     comics: require('./comics'),

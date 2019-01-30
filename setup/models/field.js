@@ -5,8 +5,10 @@
 module.exports = {
     id: 'field',
     name: 'field',
+    namePlural: 'fields',
     active: true,
     label: 'Field master',
+    table: 'field',
     fields: [
         {
             id: 'name', type: 'text', 

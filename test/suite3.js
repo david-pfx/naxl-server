@@ -1,6 +1,7 @@
 // suite3 -- testing database updates
 
-var runtest = require('./common')
+var runtest = require('./common'),
+    logger = require('../js/utils/logger')
 
 //let setup = require('../js/setup/nedb-setup')
 
@@ -38,5 +39,17 @@ runtest.FormOk('upload document', '/api/v1/test/upload/0?field=document', 'filen
     t.equal(result.fileName, 'testfile100.txt')
     t.equal(result.id, '0')
     t.equal(result.model, 'test')
+})
+
+runtest.FormOk('upload CSV', '/api/v1/test/upload/2?field=content', 'filename', './test/member.csv', (res, t) => {
+    logger.log(res.body)
+    let result = res.body
+    t.false(result.dup, 'dup')
+    t.equal(result.fileName, 'member.csv','filename')
+    t.equal(result.id, '2', 'id')
+    t.equal(result.model, 'test', 'model')
+    t.assert(result.newdata, 'new data')
+    t.equal(result.newdata.entity, 'member', 'new id')
+    t.equal(result.newdata.label, 'Member', 'new label')
 })
 

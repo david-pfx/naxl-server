@@ -1,7 +1,7 @@
 // suite1.js -- testing stuff that fails
 
-var request = require('supertest')
-var test = require('tape')
+var request = require('supertest'),
+    test = require('tape')
 
 var app = require('../app')
 

@@ -67,9 +67,9 @@ module.exports = {
 
 	logError: function(err, modeInfo){
 		if(consoleLog){
-			console.error(chalk.red(err));
+			console.error(chalk.redBright(err));
 			if(modeInfo){
-				console.error(chalk.red(modeInfo))
+				console.error(chalk.redBright(modeInfo))
 			}
 		}
 	},

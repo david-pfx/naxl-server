@@ -11,7 +11,8 @@ var modelsdata = require('./data/all_modelsdata')
 const dbpath = './nedb-data/'
     
 // set this true to create a separate fields table
-const hasfieldtable = false
+// also uncomment entries in models and data
+const hasfieldtable = true
 
 let dbs = {},
     tables = [], 
@@ -27,7 +28,7 @@ function main() {
         writeTable(tablename, modelsdata[entity])
         if (hasfieldtable) {
             addTable(nofields(model), 'entity', `Sample data for ${model.label}`)
-            addFields(model)
+            addFields(model, tables.length)
         } else
             addTable(model, 'entity', `Sample data for ${model.label}`)
     }
@@ -37,7 +38,7 @@ function main() {
 }
 
 function rewriteTable(name, content) {
-    console.log(`Rewriting ${name} rows`, tables.length)
+    console.log(`Rewriting ${name} rows`, content.length)
     dbs[name].insert(content, function (err, doc) { 
         if (err) console.log(err) 
     })
@@ -65,7 +66,7 @@ function addTable(model, kind, desc) {
     let tableid = tables.length + 1
     tables.push({ ...model, ...{
         _id: tableid,
-        id: tableid,
+        //id: tableid,
         entity: model.id,
         kind: (kind == 'entity') ? 1 : 2,
         description: desc
@@ -73,14 +74,16 @@ function addTable(model, kind, desc) {
 }
 
 // add a row to the table of fields
-function addFields(model) {
+// note that in the table id===_id, entity is the id for the model, table_id links to the table row
+function addFields(model, tableid) {
     model.fields.map(f => {
         let fieldid = fields.length + 1
         fields.push({ ...f, ...{
             _id: fieldid,
-            id: fieldid,
+            //id: fieldid,
             name: f.id,
-            entity: model.id
+            entity: model.id,
+            table_id: tableid
         }})
     })
 }

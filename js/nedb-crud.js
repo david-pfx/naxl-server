@@ -9,7 +9,7 @@ const dico = require('./utils/dico'),
     errors = require('./utils/errors'),
     logger = require('./utils/logger'),
     config = require('../config'),
-    { getDb, ungetDb, prepareAdd, promiseModel } = require('./utils/nedb-util')
+    { getDb, ungetDb, prepareAdd, promiseModel, addLookups, addCollections, lookupDict } = require('./utils/nedb-util')
 
 const ft = dico.fieldTypes
 
@@ -23,11 +23,10 @@ function fieldId(f){
     return (csvHeaderColumn === 'label') ? f.label || f.id : f.id
 }
 
-// convert a lookup into a dictionary
-function lookupDict(lookup) {
+function lookupDict2(lookup) {
     let dict = {}
     lookup.forEach(r => {
-        dict[r.id] = r.name || r.text
+        dict[r.id] = r
     })
     return dict
 }
@@ -101,39 +100,13 @@ function prepareKey(id) {
     return (+id > 0) ? { _id: +id } : { id: id }
 }
 
-// augment the result set by joining on list of fields provided
-// target is field.list, else table field.lovtable
-// look up value in this field on lovtable._id
-// replace with lovtable.name (normal tables) or lovtable.text (lov tables)
-// output goes in new field.id + _txt
-function joinResult(res, results, format, fields) {
-    if (fields.length == 0) return sendResult(res, results, format)
-    let field = fields.shift()
-    let txtfld = field.id + '_txt'
-    if (field.list) {
-        join(results, field.list, field.id, txtfld)
-        joinResult(res, results, format, fields)
-    } else  if (field.lovtable) {
-        let lovtable = field.lovtable
-        logger.log('join', lovtable, field.id, txtfld)
-        let db = getDb(lovtable)
-        db.find({ }, (err, docs) => {
-            ungetDb(lovtable)
-            if (err) return sendError(res, 'db error: ' + err)
-            join(results, docs, field.id, txtfld)
-            joinResult(res, results, format, fields)
-        })
-    } else 
-        logger.logError('bad lovtable field', field)
-
-}
-
-// add new field from lookup to data 
-function join(data, lookup, field, txtfld) {
-    var dict = lookupDict(lookup)
-    data.forEach(row => {
-        row[txtfld] = dict[row[field]] || row[field]
-    })
+// augment the result set by adding lookups and collections
+function addResultLookups(res, results, format, fields = [], collections = []) {
+    addLookups(results, fields, r1 => {
+        addCollections(r1, collections, r2 => {
+            sendResult(res, r2, format)
+        }, err => sendError(res, err))
+    }, err => sendError(res, err))
 }
 
 // create grouping of data on given field using labels if supplied
@@ -228,7 +201,8 @@ function getMany(req, res) {
 
     const entity = req.params.entity,
         format = req.query.format || null,
-        order = req.query.order || null
+        order = req.query.order || null,
+        join = req.query.join || null
 
     promiseModel(entity)
     .then(model => {
@@ -245,11 +219,13 @@ function getMany(req, res) {
             total_count = n
         })
         // TODO: make sort case-insensitive
-        db.find({}).sort(orderby).exec((err, docs) => {
+        db.find({ }).sort(orderby).exec((err, docs) => {
             if (err) return sendError(res, 'db error: ' + err)
-            joinResult(res, docs, { 
-                csv: csvheader , single: false, count: total_count 
-            }, lovFields(model))
+            addResultLookups(res, docs, { 
+                    csv: csvheader , single: false, count: total_count 
+                }, 
+                (join === 'none') ? [] : lovFields(model),
+                (join === 'all') ? model.collections : [])
         })
     })
     .catch(err => { return sendError(res, err) })
@@ -264,7 +240,8 @@ function getOne(req, res) {
     logger.logReq('GET ONE', req)
 
     const entity = req.params.entity,
-        id = req.params.id
+        id = req.params.id,
+        join = req.query.join || null
 
     promiseModel(entity)
     .then(model => {
@@ -275,7 +252,9 @@ function getOne(req, res) {
         db.find(prepareKey(id), (err, docs) => {
             ungetDb(table)
             if (err) return sendError(res, 'db error: ' + err)
-            joinResult(res, docs, { single: true }, lovFields(model))
+            addResultLookups(res, docs, { single: true }, 
+                (join === 'none') ? [] : lovFields(model),
+                (join === 'all') ? model.collections : [])
         })
     })
     .catch(err => { return sendError(res, err) })
@@ -337,7 +316,7 @@ function updateOne(req, res) {
             if (err) return sendError(res, 'db error: ' + err)
             db.find(key, (err, docs) => {
                 if (err) return sendError(res, 'db error: ' + err)
-                joinResult(res, docs, { single: true }, lovFields(model))
+                addResultLookups(res, docs, { single: true }, lovFields(model))
             })
         })
     })
@@ -421,7 +400,7 @@ function collecOne(req, res) {
 
         let where = { [collec.column]: pId }, 
             orderby = { [collec.fields[0].id]: 1 }
-        logger.log('get', collec.table || entity, 'where', where, 'order by', orderby)
+        logger.log('get', collec.table, 'where', where, 'order by', orderby)
         
         let db = getDb(collec.table)
         db.find(where).sort(orderby).exec((err, docs) => {

@@ -12,9 +12,9 @@ runtest.GetOk('info', '/api/v1//', (res, t) => {
 })
 
 runtest.GetOk('table list', '/api/v1/table', (res, t) => {
-    t.equal(res.body.length, 8, 'rows returned')
+    t.equal(res.body.length, 9, 'rows returned')
     let row0 = res.body[0]
-    t.equal(row0._full_count, 8, 'full count')
+    t.equal(row0._full_count, 9, 'full count')
     t.equal(row0.label, 'Address Book', 'first item')
 })
 
@@ -72,12 +72,17 @@ runtest.GetOk('wines list', '/api/v1/winecellar', (res, t) => {
 runtest.GetOk('wines item', '/api/v1/winecellar/5', (res, t) => {
     let row0 = res.body
     t.equal(row0.id, 5, 'first item id')
+    t.equal(row0.name, 'Château Montelena', 'first item name')
+    t.equal(row0.vintage, 2005, 'first item vintage')
 })
 
 runtest.GetOk('wine tasting list', '/api/v1/winetasting', (res, t) => {
     t.equal(res.body.length, 11, 'rows returned')
     let row0 = res.body[0]
     t.equal(row0.id, 10, 'first item id')
+    t.equal(row0.drink_date, '2015-05-05', 'drink date')
+    t.equal(row0.wine_id, 5, 'wine id')
+    t.equal(row0.wine_id_txt, 'Château Montelena', 'wine name')
 })
 
 // LOV

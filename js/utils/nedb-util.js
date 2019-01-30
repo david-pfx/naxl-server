@@ -12,7 +12,7 @@ const dbpath = './nedb-data/',
     tables_name = 'table'
 
 module.exports = {
-    getDb, ungetDb, prepareAdd, writeTable, promiseModel
+    getDb, ungetDb, lookupDict, prepareAdd, writeTable, promiseModel, addLookups, addCollections
 }
 
 // cache for db handles
@@ -34,6 +34,15 @@ function getDb(name) {
 function ungetDb(name) {
     if (--dbCache[name].use <= 0) 
         delete dbCache[name]
+}
+
+// convert a lookup into a dictionary
+function lookupDict(lookup) {
+    let dict = {}
+    lookup.forEach(r => {
+        dict[r.id] = r.name || r.text
+    })
+    return dict
 }
 
 // _id is the required key, always an integer, use id if possible
@@ -65,21 +74,91 @@ function writeTable(name, data, cbok, cberr) {
 
 // get model, check for error
 function promiseModel(entity) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         let model = dico.getModel(entity)
-        if (model) resolve(model)
-        else {
-            let db = getDb(tables_name)
-            db.find({ entity: entity }, (err, docs) => {
-                ungetDb(tables_name)
-                if (err) reject('db error: ' + err)
-                else if (!docs.length) reject('Invalid entity: "' + entity + '".')
-                else {
-                    let model = dico.prepModel(docs[0])
-                    resolve(model)
-                }
-            })
-        }
+        if (model) return resolve(model)
+        loadMasterTable(docs => {
+            docs.map(d => dico.prepModel(d))
+            let model = dico.getModel(entity)
+            if (model) return resolve(model)
+            else reject(`no such model: ${entity}`)
+        }, reject)
+    })
+}
+
+// load all models
+function loadMasterTable(resolve, reject) {
+    let db = getDb(tables_name)
+    db.find({}, (err, docs) => {
+        ungetDb(tables_name)
+        if (err) return reject('db error: ' + err)
+        let tableModel = docs[0]
+        if (!(tableModel && tableModel.collections && tableModel.entity === 'table')) return reject('empty or incomplete master table')
+        addCollections(docs, tableModel.collections, docs => resolve(docs), reject)
+    })
+}
+
+// augment the result set by adding a lookup value for each field
+// target is field.list, else table field.lovtable
+// look up value in this field on lovtable._id
+// replace with lovtable.name (normal tables) or lovtable.text (lov tables)
+// output goes in new field.id + _txt
+function addLookups(results, fields, resolve, reject) {
+    if (fields.length == 0) return resolve(results)
+    let field = fields.shift()
+    let txtfld = field.id + '_txt'
+    if (field.list) {
+        addLookup(results, field.list, field.id, txtfld)
+        addLookups(results, fields, resolve, reject)
+    } else if (field.lovtable) {
+        let lovtable = field.lovtable
+        logger.log('add lookup', lovtable, field.id, txtfld)
+        let db = getDb(lovtable)
+        db.find({ }, (err, docs) => {
+            ungetDb(lovtable)
+            if (err) return resolve('db error: ' + err)
+            addLookup(results, docs, field.id, txtfld)
+            addLookups(results, fields, resolve, reject)
+        })
+    } else return reject(`bad lovtable field: ${collection}`)
+}
+
+// augment the result by adding an array field for each collection
+function addCollections(results, collections, resolve, reject) {
+    if (collections.length == 0) return resolve(results)
+    let collection = collections.shift()
+    if (collection.table) {
+        let table = collection.table
+        logger.log('add collect', table, collection.id, collection.column)
+        let db = getDb(table)
+        db.find({ }, (err, docs) => {
+            ungetDb(table)
+            if (err) return reject('db error: ' + err)
+            addCollection(results, '_id', docs, collection.column, collection.id)
+            addCollections(results, collections, resolve, reject)
+        })
+    } else return reject(`bad collection table: ${collection}`)
+}
+
+// add new field from lookup to data 
+function addLookup(data, lookup, joinfield, outfield) {
+    var dict = lookupDict(lookup)
+    data.forEach(row => {
+        row[outfield] = dict[row[joinfield]] || row[joinfield]
+    })
+}
+
+// add new field from lookup to data 
+function addCollection(data, keyfield, collection, joinfield, outfield) {
+    let dict = {}
+    collection.forEach(row => {
+        let key = row[joinfield]
+        if (dict[key])
+            dict[key].push(row)
+        else dict[key] = [ row ]
+    })
+    data.forEach(row => {
+        row[outfield] = dict[row[keyfield]] || []
     })
 }
 
