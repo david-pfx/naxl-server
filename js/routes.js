@@ -32,6 +32,7 @@ if(config.apiInfo){
 
 // ======  Version ====================================
 router.get(apiPath+'version', info.version);
+router.get(apiPath+'models', crud.getModels);
 
 // ======  GET STATS ====================================
 router.get(apiPath+':entity/stats', crud.statsMany);

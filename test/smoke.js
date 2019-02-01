@@ -10,8 +10,8 @@ let util = require('util'),
 let runtest = require('./common'),
     logger = require('../js/utils/logger')
 
-smokeTests(true)
-//specialTests(true)
+smokeTests(false)
+specialTests(true)
 
 test('End smoke test!', t => {
     t.end()
@@ -65,19 +65,11 @@ function smokeTests(enableLogging) {
         //t.equal(res.body.length, 21, 'rows returned')
     })
 
-
     runtest.GetOkCsv('todo get csv', '/api/v1/todo?format=csv', (res, t) => {
         // fails -- why?
         //t.equal(res.body.length, 22, 'rows returned')
         //let row0 = res.body[0]
         //t.equal(row0.title, 'Add sample data', 'first item')
-    })
-}
-
-function specialTests(enableLogging) {
-    test('Begin special tests!', t => {
-        logger.setEnable(enableLogging)
-        t.end()
     })
 
     runtest.GetOk('wines join all', '/api/v1/winecellar?join=all', (res, t) => {
@@ -93,14 +85,41 @@ function specialTests(enableLogging) {
     runtest.GetOk('table list join all', '/api/v1/table?join=all', (res, t) => {
         t.equal(res.body.length, 9, 'rows returned')
         let row0 = res.body[0]
-        logger.log(row0)
-        //t.equal(row0.id, 5, 'first item id')
+        //logger.log(row0)
+        t.equal(row0.id, 5, 'first item id')
+        t.equal(row0.entity, 'comics', 'first item entity')
+        t.equal(row0.groups.length, 2, 'first item groups')
+        t.equal(row0.fields.length, 11, 'first item fields')
     })
 
-    // runtest.GetOk('table 2 join all', '/api/v1/table/2?join=all', (res, t) => {
-    //     //logger.log(res.body)
-    //     let result = res.body
-    // })
+    runtest.GetOk('table 5 join all', '/api/v1/table/5?join=all', (res, t) => {
+        let row0 = res.body
+        //logger.log(row0)
+        t.equal(row0.id, 5, 'item id')
+        t.equal(row0.entity, 'comics', 'item entity')
+        t.equal(row0.groups.length, 2, 'item groups')
+        t.equal(row0.fields.length, 11, 'item fields')
+    })
+
+    runtest.GetOk('table field collec', '/api/v1/table/collec/fields?id=4&pageSize=50', (res, t) => {
+        t.equal(res.body.length, 17, 'rows returned')
+        let row0 = res.body[0]
+        //logger.log(row0)
+    })
+
+}
+
+function specialTests(enableLogging) {
+    test('Begin special tests!', t => {
+        logger.setEnable(enableLogging)
+        t.end()
+    })
+
+    runtest.GetOk('models', '/api/v1/models', (res, t) => {
+        t.equal(res.body.length, 9, 'rows returned')
+        let row0 = res.body[0]
+        logger.log(row0)
+    })
 
     // let data = { entity: "member", kind: 1, source: 'table/member.csv' }
     // runtest.PostOk('todo insert', '/api/v1/table/', data, (res, t) => {

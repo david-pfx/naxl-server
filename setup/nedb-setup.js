@@ -61,12 +61,12 @@ function writeTable(name, data) {
 }
 
 // add a row to the table of tables
-// note that in the table id===_id and entity is the id for the model.
+// note that in the table id===_id and entity is the id key for the model.
 function addTable(model, kind, desc) {
     let tableid = tables.length + 1
     tables.push({ ...model, ...{
         _id: tableid,
-        //id: tableid,
+        id: tableid,
         entity: model.id,
         kind: (kind == 'entity') ? 1 : 2,
         description: desc
@@ -80,7 +80,7 @@ function addFields(model, tableid) {
         let fieldid = fields.length + 1
         fields.push({ ...f, ...{
             _id: fieldid,
-            //id: fieldid,
+            id: fieldid,
             name: f.id,
             entity: model.id,
             table_id: tableid

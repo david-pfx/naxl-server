@@ -12,7 +12,13 @@ module.exports = {
     fields: [
         {
             id: 'name', type: 'text', 
-            label: 'Name', maxLength: 50,
+            label: 'Unique name', maxLength: 50,
+            required: true, inMany: true,
+            width: 20,
+        },
+        {
+            id: 'label', type: 'text', 
+            label: 'Label', maxLength: 50,
             required: true, inMany: true,
             width: 20,
         },
@@ -26,12 +32,6 @@ module.exports = {
             id: 'lovtable', type: 'text', 
             label: 'LOV table name', maxLength: 50,
             inMany: true,
-            width: 20,
-        },
-        {
-            id: 'label', type: 'text', 
-            label: 'Label', maxLength: 50,
-            required: true, inMany: true,
             width: 20,
         },
         {
@@ -49,6 +49,7 @@ module.exports = {
 		{
 			id: "table_id", type: "lov",
 			entity: "table",
+			lovtable: "table",
 			label: "Table",
 			inMany: true,
             width: 10,

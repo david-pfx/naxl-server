@@ -72,13 +72,23 @@ function writeTable(name, data, cbok, cberr) {
     })
 }
 
-// get model, check for error
+// get model, check for error, load if needed
+// null entity means all models
+// id is an integer on disk and has to be replaced here for the model
 function promiseModel(entity) {
     return new Promise(function (resolve, reject) {
-        let model = dico.getModel(entity)
+        let model = entity && dico.getModel(entity)
         if (model) return resolve(model)
         loadMasterTable(docs => {
-            docs.map(d => dico.prepModel(d))
+            docs.map(d => {
+                let fields = d.fields.map(f => ({ ...f, id: f.name }))
+                return dico.prepModel({
+                    ...d, 
+                    id: d.entity, 
+                    fields: fields
+                })
+            })
+            if (!entity) return resolve(dico.models)
             let model = dico.getModel(entity)
             if (model) return resolve(model)
             else reject(`no such model: ${entity}`)
@@ -105,11 +115,11 @@ function loadMasterTable(resolve, reject) {
 // output goes in new field.id + _txt
 function addLookups(results, fields, resolve, reject) {
     if (fields.length == 0) return resolve(results)
-    let field = fields.shift()
+    let field = fields[0]
     let txtfld = field.id + '_txt'
     if (field.list) {
         addLookup(results, field.list, field.id, txtfld)
-        addLookups(results, fields, resolve, reject)
+        addLookups(results, fields.slice(1), resolve, reject)
     } else if (field.lovtable) {
         let lovtable = field.lovtable
         logger.log('add lookup', lovtable, field.id, txtfld)
@@ -118,15 +128,15 @@ function addLookups(results, fields, resolve, reject) {
             ungetDb(lovtable)
             if (err) return resolve('db error: ' + err)
             addLookup(results, docs, field.id, txtfld)
-            addLookups(results, fields, resolve, reject)
+            addLookups(results, fields.slice(1), resolve, reject)
         })
-    } else return reject(`bad lovtable field: ${collection}`)
+    } else return reject(`bad lovtable field: ${field.id}`)
 }
 
 // augment the result by adding an array field for each collection
 function addCollections(results, collections, resolve, reject) {
     if (collections.length == 0) return resolve(results)
-    let collection = collections.shift()
+    let collection = collections[0]
     if (collection.table) {
         let table = collection.table
         logger.log('add collect', table, collection.id, collection.column)
@@ -135,7 +145,7 @@ function addCollections(results, collections, resolve, reject) {
             ungetDb(table)
             if (err) return reject('db error: ' + err)
             addCollection(results, '_id', docs, collection.column, collection.id)
-            addCollections(results, collections, resolve, reject)
+            addCollections(results, collections.slice(1), resolve, reject)
         })
     } else return reject(`bad collection table: ${collection}`)
 }

@@ -55,7 +55,8 @@ var fields = [
 		"required": true,
 		"list": lov,
 		"inMany": true,
-		"width": 100
+		"width": 100,
+		"lovtable": "z_test_flavor"
 	},
 	{
 		"id": "parent",
@@ -65,7 +66,8 @@ var fields = [
 		"required": true,
 		"inMany": true,
 		"width": 100,
-		"help": "LOV "
+		"help": "LOV ",
+		"lovtable": "z_test"
 	},
 	{
 		"id": "lovlc",
@@ -74,6 +76,7 @@ var fields = [
 		"list": lov,
 		"defaultValue": 5,
 		"width": 100,
+		"lovtable": "z_test_flavor",
 		"help": "List of Values with \"Lemon Cookie\" as default value."
 	},
 	{
@@ -163,6 +166,7 @@ var fields = [
 
 module.exports = {
 	"id": "test",
+	"table": "z_test",
 	"label": "Test Data",
 	"name": "test",
 	"namePlural": "tests",
@@ -231,8 +235,10 @@ module.exports = {
 	"collections": [
 		{
 			"id": "children",
+			"table": "z_test",
 			"title": "Children",
 			"object": "test",
+			"order": "desc",
 			"fields": fields.slice(0, 3)
 		}
 	]

@@ -11,6 +11,16 @@ module.exports = {
     table: 'table',
     fields: [
         {
+            id: 'entity', 
+            type: 'text', 
+            label: 'Unique name', 
+            description: 'Unique name for table', 
+            maxLength: 20,
+            required: true,
+            width: 20, 
+            inMany: true
+        },
+        {
             id: 'label', 
             type: 'text', 
             label: 'Collection Name', 

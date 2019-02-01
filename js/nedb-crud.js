@@ -2,8 +2,7 @@
 
 // 2019 David M. Bennett
 
-const nedb = require('nedb'),
-    csv = require('csv-express')        // later fork on express-csv
+require('csv-express')        // later fork on express-csv
 
 const dico = require('./utils/dico'),
     errors = require('./utils/errors'),
@@ -12,9 +11,6 @@ const dico = require('./utils/dico'),
     { getDb, ungetDb, prepareAdd, promiseModel, addLookups, addCollections, lookupDict } = require('./utils/nedb-util')
 
 const ft = dico.fieldTypes
-
-const defaultPageSize = config.pageSize || 50,
-    lovSize = config.lovSize || 100
 
 // - build the header row for CSV export
 const csvHeaderColumn = config.csvHeader || 'label'
@@ -192,6 +188,22 @@ function summariseResult(docs, model) {
 }
 
 // --------------------------------------------------------------------------------------
+// -----------------    GET MODELS   ----------------------------------------------------
+// --------------------------------------------------------------------------------------
+
+// - returns the complete set of models
+function getModels(req, res) {
+    logger.logReq('GET MODELS', req)
+
+    promiseModel()
+    .then(models => {
+        logger.log('get models')
+        sendResult(res, [ models ], { })
+    })
+    .catch(err => { return sendError(res, err) })
+}
+
+// --------------------------------------------------------------------------------------
 // -----------------    GET MANY   ------------------------------------------------------
 // --------------------------------------------------------------------------------------
 
@@ -208,7 +220,7 @@ function getMany(req, res) {
     .then(model => {
         let table = model.table || entity,
             orderby = orderBy(model, order)
-        logger.log('get all', table, 'order by', orderby)
+        logger.log('get all', table, 'order by', orderby, 'join', join)
         
         let csvheader = (format==='csv') ? csvHeader(model.fields) : null,
             db = getDb(table),
@@ -399,7 +411,9 @@ function collecOne(req, res) {
         if (collec.error) return sendError(res, collec.error)
 
         let where = { [collec.column]: pId }, 
-            orderby = { [collec.fields[0].id]: 1 }
+            order = (collec.order == 'desc') ? -1 : 1,
+            orderby = (collec.fields) ? { [collec.fields[0].id]: order }
+                : (collec.orderby) ? { [collec.orderby]: order } : { }
         logger.log('get', collec.table, 'where', where, 'order by', orderby)
         
         let db = getDb(collec.table)
@@ -484,7 +498,7 @@ function statsMany(req, res) {
 
 module.exports = {
 
-    promiseModel,
+    getModels,
 
     // - CRUD
     getMany: getMany,
