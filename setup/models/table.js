@@ -11,7 +11,7 @@ module.exports = {
     table: 'table',
     fields: [
         {
-            id: 'entity', 
+            id: 'ident', 
             type: 'text', 
             label: 'Unique name', 
             description: 'Unique name for table', 
@@ -19,6 +19,20 @@ module.exports = {
             required: true,
             width: 20, 
             inMany: true
+        },
+        {
+            id: 'kind', 
+            type: 'lov',
+            label: 'Kind',
+            description: 'Kind of table, entity or values', 
+            required: true, 
+            width: 20, 
+            inMany: true,
+            list: [
+                {id: 1, text: "Entity"},
+                {id: 2, text: "List"},
+                {id: 3, text: "Child"},
+            ], 
         },
         {
             id: 'label', 
@@ -47,20 +61,6 @@ module.exports = {
             maxLength: 30,
             width: 20, 
             inMany: true
-        },
-        {
-            id: 'kind', 
-            type: 'lov',
-            label: 'Kind',
-            description: 'Kind of table, entity or values', 
-            required: true, 
-            width: 20, 
-            inMany: true,
-            list: [
-                {id: 1, text: "Entity"},
-                {id: 2, text: "List"},
-                {id: 3, text: "Child"},
-            ], 
         },
         {
             id: 'titleField', 

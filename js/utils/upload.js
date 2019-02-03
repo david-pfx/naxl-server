@@ -38,7 +38,7 @@ module.exports = {
                 dup = false
 
             form.multiples = false;
-            form.uploadDir = path.join(config.uploadPath, '/'+m.entity);
+            form.uploadDir = path.join(config.uploadPath, '/'+m.id);
 
             form.on('file', function(field, file) {
                 fname = originalName = file.name;
@@ -65,14 +65,16 @@ module.exports = {
                     duplicate: dup,
                     fileName: fname,
                     id: id,
-                    model: m.entity,
+                    model: m.ident,
                 }
                 let field = m.fieldsH[fieldid]
                 if (field && field.type === ft.content) {
                     parseContent.parseCsv(ffname, 
                         data => {
+                            // this is the table row which the uses sees and may save
                             result.newdata = parseContent.createModel(originalName, data[0])
-                            writeTable(result.newdata.entity, data, 
+                            // this is the database file, for if the user saves
+                            writeTable(result.newdata.table, data, 
                                 count => { 
                                     result.count = count
                                     res.json(result) 

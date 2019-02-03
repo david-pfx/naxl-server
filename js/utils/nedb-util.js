@@ -80,14 +80,7 @@ function promiseModel(entity) {
         let model = entity && dico.getModel(entity)
         if (model) return resolve(model)
         loadMasterTable(docs => {
-            docs.map(d => {
-                let fields = d.fields.map(f => ({ ...f, id: f.name }))
-                return dico.prepModel({
-                    ...d, 
-                    id: d.entity, 
-                    fields: fields
-                })
-            })
+            docs.map(d => dico.prepModel(dico.asModel(d)))
             if (!entity) return resolve(dico.models)
             let model = dico.getModel(entity)
             if (model) return resolve(model)
@@ -103,7 +96,7 @@ function loadMasterTable(resolve, reject) {
         ungetDb(tables_name)
         if (err) return reject('db error: ' + err)
         let tableModel = docs[0]
-        if (!(tableModel && tableModel.collections && tableModel.entity === 'table')) return reject('empty or incomplete master table')
+        if (!(tableModel && tableModel.collections && tableModel.ident === 'table')) return reject('empty or incomplete master table')
         addCollections(docs, tableModel.collections, docs => resolve(docs), reject)
     })
 }

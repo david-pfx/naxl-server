@@ -6,8 +6,9 @@
 
 var nedb = require('nedb')
 
-var models = require('./models/all_models')
-var modelsdata = require('./data/all_modelsdata')
+var models = require('./models/all_models'),
+    modelsdata = require('./data/all_modelsdata'),
+    dico = require('../js/utils/dico')
 const dbpath = './nedb-data/'
     
 // set this true to create a separate fields table
@@ -63,29 +64,13 @@ function writeTable(name, data) {
 // add a row to the table of tables
 // note that in the table id===_id and entity is the id key for the model.
 function addTable(model, kind, desc) {
-    let tableid = tables.length + 1
-    tables.push({ ...model, ...{
-        _id: tableid,
-        id: tableid,
-        entity: model.id,
-        kind: (kind == 'entity') ? 1 : 2,
-        description: desc
-    }})
+    tables.push(dico.toTableRow(model, tables.length + 1, kind, desc))
 }
 
 // add a row to the table of fields
 // note that in the table id===_id, entity is the id for the model, table_id links to the table row
 function addFields(model, tableid) {
-    model.fields.map(f => {
-        let fieldid = fields.length + 1
-        fields.push({ ...f, ...{
-            _id: fieldid,
-            id: fieldid,
-            name: f.id,
-            entity: model.id,
-            table_id: tableid
-        }})
-    })
+    model.fields.map(f => fields.push(dico.toFieldRow(f, fields.length + 1, tableid)))
 }
 
 // _id is the required key, always an integer, use id if possible

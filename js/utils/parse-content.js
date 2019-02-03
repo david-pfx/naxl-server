@@ -1,9 +1,11 @@
 // process dropped content file
 
-// (c) 2019 Datid Bennett
+// (c) 2019 David Bennett
 
-let fs = require('fs')
-let parse = require('csv-parser')
+let fs = require('fs'),
+    parse = require('csv-parser')
+
+let { fieldTypes } = require('./dico')
 
 // simple logging function, easy to disable
 function logall(...args) {
@@ -36,28 +38,28 @@ module.exports = {
         })
     },
 
-    // Create a moodel from the keys of a data row object
+    // Create a model from the keys of a data row object
     createModel: function(filename, row) {
         // title case function
-        let tc = str => str.replace(/\b\w+/g, s => s.charAt(0).toUpperCase() + s.substr(1).toLowerCase() )
+        let titleCase = str => str.replace(/\b\w+/g, s => s.charAt(0).toUpperCase() + s.substr(1).toLowerCase() )
 
         // get rid of known extension
         let name = filename.replace(/[.]csv$/i, '')
         // create fields from CSV row
         let fields = Object.keys(row).map(k => {
             return {
-                "id": k,
-                "type": "text",
-                "label": tc(k),
-                "inMany": true,
+                ident: k,
+                type: fieldTypes.text,
+                label: titleCase(k),
+                inMany: true,
             }
         })
         return result = {
-            "entity": name.toLowerCase(),
-            "active": true,  // set later?
-            "label": tc(name),
-            "kind": 1,
-            "fields": fields
+            ident: name.toLowerCase(),
+            active: true,  // set later?
+            label: titleCase(name),
+            kind: 1,
+            fields: fields
         }        
     },   
 }

@@ -119,7 +119,7 @@ function hById(arr){
 }
 
 function prepModel(m){
-	if(m && m.fields){
+	if(m && m.fields && m.id){
 		if(!m.prepared){
 			m.schemaTable = schema+'."'+(m.table || m.id)+'"';
 			m.fieldsH = {}
@@ -144,7 +144,7 @@ function prepModel(m){
 				m.collecsH = hById(m.collections);
 			}
 			m.prepared = true;
-			models[m.entity] = m
+			models[m.id] = m
 		}
 		return m;
 	}else{
@@ -153,8 +153,40 @@ function prepModel(m){
 	}
 }
 
+// convert a model into on-disk table format
+function toTableRow(model, tableid, kind, desc) {
+    return { ...model, ...{
+        _id: tableid,
+        id: tableid,
+        ident: model.id,
+    	kind: (kind == 'entity') ? 1 : 2,
+        description: desc || `${model.label} table`
+    }}
+}
+
+// convert a model field into on-disk field format
+function toFieldRow(field, fieldid, tableid) {
+	return { ...field, ...{
+		_id: fieldid,
+		id: fieldid,
+		ident: field.id,
+		name: field.id,
+		table_id: tableid
+	}}
+}
+
+// convert a row from the master table into model format
+function asModel(row) {
+    return {
+        ...row, 
+        id: row.ident, 
+        fields: row.fields.map(f => ({ ...f, id: f.ident }))
+    }
+}
+
 module.exports = {
 
+	toTableRow, toFieldRow, asModel,
 	fieldTypes: ft,
 	models: models,
 

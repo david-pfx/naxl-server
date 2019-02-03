@@ -87,7 +87,7 @@ function smokeTests(enableLogging) {
         let row0 = res.body[0]
         //logger.log(row0)
         t.equal(row0.id, 5, 'first item id')
-        t.equal(row0.entity, 'comics', 'first item entity')
+        t.equal(row0.ident, 'comics', 'first item entity')
         t.equal(row0.groups.length, 2, 'first item groups')
         t.equal(row0.fields.length, 11, 'first item fields')
     })
@@ -96,7 +96,7 @@ function smokeTests(enableLogging) {
         let row0 = res.body
         //logger.log(row0)
         t.equal(row0.id, 5, 'item id')
-        t.equal(row0.entity, 'comics', 'item entity')
+        t.equal(row0.ident, 'comics', 'item entity')
         t.equal(row0.groups.length, 2, 'item groups')
         t.equal(row0.fields.length, 11, 'item fields')
     })
@@ -116,9 +116,9 @@ function specialTests(enableLogging) {
     })
 
     runtest.GetOk('models', '/api/v1/models', (res, t) => {
-        t.equal(res.body.length, 9, 'rows returned')
+        t.equal(res.body.length, 1, 'rows returned')
         let row0 = res.body[0]
-        logger.log(row0)
+        //logger.log(row0)
     })
 
     // let data = { entity: "member", kind: 1, source: 'table/member.csv' }

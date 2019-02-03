@@ -49,7 +49,7 @@ runtest.FormOk('upload CSV', '/api/v1/test/upload/2?field=content', 'filename', 
     t.equal(result.id, '2', 'id')
     t.equal(result.model, 'test', 'model')
     t.assert(result.newdata, 'new data')
-    t.equal(result.newdata.entity, 'member', 'new id')
+    t.equal(result.newdata.ident, 'member', 'new id')
     t.equal(result.newdata.label, 'Member', 'new label')
 })
 
