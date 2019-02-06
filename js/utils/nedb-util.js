@@ -36,11 +36,11 @@ function ungetDb(name) {
         delete dbCache[name]
 }
 
-// convert a lookup into a dictionary
-function lookupDict(lookup) {
+// convert a lookup into a dictionary key=>value
+function lookupDict(lookup, cb) {
     let dict = {}
     lookup.forEach(r => {
-        dict[r.id] = r.name || r.text
+        dict[r.id] = cb ? cb(r) : r
     })
     return dict
 }
@@ -109,18 +109,17 @@ function loadMasterTable(resolve, reject) {
 function addLookups(results, fields, resolve, reject) {
     if (fields.length == 0) return resolve(results)
     let field = fields[0]
-    let txtfld = field.id + '_txt'
     if (field.list) {
-        addLookup(results, field.list, field.id, txtfld)
+        addLookup(results, field.list, field.id)
         addLookups(results, fields.slice(1), resolve, reject)
     } else if (field.lovtable) {
         let lovtable = field.lovtable
-        logger.log('add lookup', lovtable, field.id, txtfld)
+        logger.log('add lookup', lovtable, field.id)
         let db = getDb(lovtable)
         db.find({ }, (err, docs) => {
             ungetDb(lovtable)
             if (err) return resolve('db error: ' + err)
-            addLookup(results, docs, field.id, txtfld)
+            addLookup(results, docs, field.id)
             addLookups(results, fields.slice(1), resolve, reject)
         })
     } else return reject(`bad lovtable field: ${field.id}`)
@@ -143,11 +142,13 @@ function addCollections(results, collections, resolve, reject) {
     } else return reject(`bad collection table: ${collection}`)
 }
 
-// add new field from lookup to data 
-function addLookup(data, lookup, joinfield, outfield) {
+// add new field(s) from lookup to data 
+function addLookup(data, lookup, joinfield) {
     var dict = lookupDict(lookup)
     data.forEach(row => {
-        row[outfield] = dict[row[joinfield]] || row[joinfield]
+        let v = dict[row[joinfield]]
+        if (v) row[joinfield + '_txt'] = v.name || v.text
+        if (v && v.icon) row[joinfield + '_icon'] = v.icon
     })
 }
 

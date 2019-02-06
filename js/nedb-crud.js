@@ -19,14 +19,6 @@ function fieldId(f){
     return (csvHeaderColumn === 'label') ? f.label || f.id : f.id
 }
 
-function lookupDict2(lookup) {
-    let dict = {}
-    lookup.forEach(r => {
-        dict[r.id] = r
-    })
-    return dict
-}
-
 function lovFields(model) {
     return model.fields.filter(f => f.type == ft.lov)
 }
@@ -116,7 +108,7 @@ function groupResult(data, field, labels) {
     logger.log('groups', groups)
     let result = [], i = 1
     for (let g in groups) {
-        result.push({ 
+    result.push({ 
             id: i++, 
             label: (labels && labels[g]) ? labels[g] : g, 
             value: groups[g] 
@@ -450,14 +442,16 @@ function chartField(req, res) {
             if (err) return sendError(res, 'db error: ' + err)
             if (field.type == ft.lov) {
                 if (field.list) {
-                    let results = groupResult(docs, field, lookupDict(field.list));
+                    let lookup = lookupDict(field.list, r => r.name || r.text)
+                    let results = groupResult(docs, field, lookup);
                     sendResult(res, results, { })
                 } else {
                     let db2 = getDb(field.lovtable)
                     db2.find({ }, (err, lov) => {
                         ungetDb(field.lovtable)
                         if (err) return sendError(res, 'db error: ' + err)
-                        let results = groupResult(docs, field, lookupDict(lov));
+                        let lookup = lookupDict(lov, r => r.name || r.text)
+                        let results = groupResult(docs, field, lookup);
                         sendResult(res, results, { })
                     })
                 }
