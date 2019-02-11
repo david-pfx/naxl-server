@@ -9,6 +9,12 @@ var app = require('../app')
 
 module.exports = {
 
+    comment: function(msg) {
+        test(msg, t => {
+            t.end()
+        })
+    },
+
     GetOk: function(name, api, testfun) {
         test(`======== ${name} === ${api} ========`, t => {
             request(app)

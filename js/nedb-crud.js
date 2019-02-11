@@ -59,16 +59,15 @@ function sendError(res, msg) {
 // parse somefield.asc, into { somefield: 1, }
 // BUG: fields in object are not ordered
 function orderBy(model, order) {
+    if (model.fields.length == 0) return { }
+    if (!order) return { [model.fields[0].id]: 1 }
     orderby = { }
-    if (!order) orderby[model.fields[0].id] = 1
-    else {
-        order.split(',').forEach(s => {
-            let ss = s.split('.')
-            if (ss.length == 2) 
-                orderby[ss[0]] = (ss[1] == 'desc') ? -1 : 1
-            else orderby[ss] = 1
-        })
-    }
+    order.split(',').forEach(s => {
+        let ss = s.split('.')
+        if (ss.length == 2) 
+            orderby[ss[0]] = (ss[1] == 'desc') ? -1 : 1
+        else orderby[ss] = 1
+    })
     return orderby
 }
 
@@ -268,11 +267,12 @@ function getOne(req, res) {
 // -----------------    INSERT ONE   ----------------------------------------------------
 // --------------------------------------------------------------------------------------
 
-// - insert a single record
+// - insert a single record, or many
 function insertOne(req, res) {
     logger.logReq('INSERT ONE', req)
 
-    const entity = req.params.entity
+    const entity = req.params.entity,
+        isMany = Array.isArray(req.body)
     promiseModel(entity)
     .then(model => {
         const table = model.table || entity
@@ -284,13 +284,13 @@ function insertOne(req, res) {
             let lastid = docs.reduce((acc, row) => { 
                 return (row._id > acc) ? row._id : acc
             }, 0)
-            let record = prepareAdd(prepareRecord(req.body, model), lastid + 1)
-            //let record = prepareRecord(req.body, lastid + 1, model);
-            db.insert(record, (err, docs) => {
+            let reqrows = (isMany) ? req.body : [ req.body ]
+            logger.log('insert some', table, reqrows.length, lastid)
+            let records = reqrows.map(r => prepareAdd(prepareRecord(r, model), ++lastid))
+            db.insert(records, (err, docs) => {
                 ungetDb(table)
                 if (err) return sendError(res, 'db error: ' + err)
-                logger.log('new:', docs)
-                sendResult(res, [{ id: docs._id }], { single: true })
+                sendResult(res, docs.map(d => ({ id: d._id })), { single: !isMany })
             })
         })
     })

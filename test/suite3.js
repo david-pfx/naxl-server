@@ -3,8 +3,6 @@
 var runtest = require('./common'),
     logger = require('../js/utils/logger')
 
-//let setup = require('../js/setup/nedb-setup')
-
 let data = { title: "aaa test", duedate: "2018-11-22T13:00:00.000Z", category: 1, priority: 3, complete: null, description: "stuff" }
 runtest.PostOk('todo insert', '/api/v1/todo/', data, (res, t) => {
     //t.equal(res.body.length, 1, 'rows returned')

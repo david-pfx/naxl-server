@@ -59,6 +59,11 @@ module.exports = {
             active: true,  // set later?
             label: titleCase(name),
             kind: 1,
+            titleField: titleCase(name),
+            name: name.toLowerCase(),
+            namePlural: name.toLowerCase() + 's',
+            source: filename,
+            description: `Created by uploading ${filename}`,
             fields: fields
         }        
     },   

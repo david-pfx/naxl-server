@@ -11,7 +11,7 @@ module.exports = {
     table: 'field',
     fields: [
         {
-            id: 'name', type: 'text', 
+            id: 'ident', type: 'text', 
             label: 'Unique name', maxLength: 50,
             required: true, inMany: true,
             width: 20,
@@ -23,7 +23,7 @@ module.exports = {
             width: 20,
         },
         {
-            id: 'type', type: 'text',
+            id: 'type', type: 'text',  // TODO: lov
             label: 'Type',
             required: true, inMany: true,
             width: 20,
