@@ -110,24 +110,24 @@ var winecellar_lovs = {
     ],
 
     country: [
-        { id: 1, text: "Argentina"},
-        { id: 2, text: "Austria"},
-        { id: 3, text: "Bulgaria"},
-        { id: 4, text: "Canada"},
-        { id: 5, text: "Chile"},
-        { id: 6, text: "Cyprus"},
-        { id: 7, text: "France"},
-        { id: 8, text: "Germany"},
-        { id: 9, text: "Greece"},
-        { id: 10, text: "Hungary"},
-        { id: 11, text: "Italy"},
-        { id: 12, text: "Luxembourg"},
-        { id: 13, text: "New Zealand"},
-        { id: 14, text: "Portugal"},
-        { id: 15, text: "South Africa"},
-        { id: 16, text: "Spain"},
-        { id: 17, text: "Switzerland"},
-        { id: 18, text: "United States"}
+        { id: 1, icon:"wine/flags/ar.png", text: "Argentina"},
+        { id: 2, icon:"wine/flags/at.png", text: "Austria"},
+        { id: 3, icon:"wine/flags/bg.png", text: "Bulgaria"},
+        { id: 4, icon:"wine/flags/ca.png", text: "Canada"},
+        { id: 5, icon:"wine/flags/cl.png", text: "Chile"},
+        { id: 6, icon:"wine/flags/cy.png", text: "Cyprus"},
+        { id: 7, icon:"wine/flags/fr.png", text: "France"},
+        { id: 8, icon:"wine/flags/de.png", text: "Germany"},
+        { id: 9, icon:"wine/flags/gr.png", text: "Greece"},
+        { id: 10, icon:"wine/flags/hu.png", text: "Hungary"},
+        { id: 11, icon:"wine/flags/it.png", text: "Italy"},
+        { id: 12, icon:"wine/flags/lu.png", text: "Luxembourg"},
+        { id: 13, icon:"wine/flags/nz.png", text: "New Zealand"},
+        { id: 14, icon:"wine/flags/pt.png", text: "Portugal"},
+        { id: 15, icon:"wine/flags/za.png", text: "South Africa"},
+        { id: 16, icon:"wine/flags/es.png", text: "Spain"},
+        { id: 17, icon:"wine/flags/ch.png", text: "Switzerland"},
+        { id: 18, icon:"wine/flags/us.png", text: "United States"}
     ]
 
 };

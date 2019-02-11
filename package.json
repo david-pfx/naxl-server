@@ -42,23 +42,20 @@
     "DRY"
   ],
   "dependencies": {
+    "express": "~4.16.4",
+    "csv-express": "~1.2.2",
     "body-parser": "~1.18.3",
-    "chalk": "~2.4.1",
-    "csv-express": "^1.2.2",
-    "csv-parser": "^2.1.0",
-    "debug": "~3.1.0",
-    "express": "~4.16.3",
-    "express-csv": "~0.6.0",
+    "helmet": "~3.15.0",
+    "debug": "~4.1.1",
+    "chalk": "~2.4.2",
     "formidable": "~1.2.1",
-    "helmet": "~3.13.0",
-    "nedb": "^1.8.0",
-    "pg": "^7.4.3",
+    "shortid": "~2.2.14",
+    "pg": "^7.8.0",
     "pg-connection-string": "~2.0.0",
     "shortid": "~2.2.13",
     "supertest": "^3.3.0",
     "supervisor": "~0.12.0",
     "tape": "^4.9.1",
-    "underscore": "~1.8.3"
   },
   "devDependencies": {}
 }
