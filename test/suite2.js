@@ -77,9 +77,9 @@ runtest.GetOk('wines item', '/api/v1/winecellar/5', (res, t) => {
 })
 
 runtest.GetOk('wine tasting list', '/api/v1/winetasting', (res, t) => {
-    t.equal(res.body.length, 11, 'rows returned')
+    t.equal(res.body.length, 13, 'rows returned')
     let row0 = res.body[0]
-    t.equal(row0.id, 10, 'first item id')
+    t.equal(row0.id, 11, 'first item id')
     t.equal(row0.drink_date, '2017-05-05', 'drink date')
     t.equal(row0.wine_id, 5, 'wine id')
     t.equal(row0.wine_id_txt, 'Château Montelena', 'wine name')
@@ -92,9 +92,9 @@ runtest.GetOk('todo category lov', '/api/v1/todo/lov/category', (res, t) => {
 
 // COLLECTIONS
 runtest.GetOk('wines collection', '/api/v1/winecellar/collec/wine_tasting?id=5', (res, t) => {
-    t.equal(res.body.length, 2, 'rows returned')
+    t.equal(res.body.length, 3, 'rows returned')
     let row0 = res.body[0]
-    t.equal(row0.id, 10, 'first item id')
+    t.equal(row0.id, 11, 'first item id')
 })
 
 // ORDER BY

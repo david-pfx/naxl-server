@@ -139,7 +139,7 @@ function specialTests(enableLogging) {
             t.equal(row0.id, tableid, 'id added')
         })
 
-        return
+        //return
         let fieldrows = tablerow.fields.map(f => ({ ...f, table_id: tableid }))
         logger.log(fieldrows)
         runtest.PostOk('fields insert', '/api/v1/field/', fieldrows, (res, t) => {

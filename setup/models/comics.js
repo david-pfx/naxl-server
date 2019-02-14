@@ -58,8 +58,8 @@ module.exports = {
           width: 17, inMany: true,
           lovicon: true,
           list: [
-            {id: 2, text: 'French', icon:'flag_fr.gif'},
-            {id: 1, text: 'American', icon:'flag_us.gif'}
+            {id: 2, text: 'French', icon:'flags/fr.png'},
+            {id: 1, text: 'American', icon:'flags/us.png'}
           ]
       },
       {

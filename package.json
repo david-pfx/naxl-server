@@ -52,10 +52,9 @@
     "shortid": "~2.2.14",
     "pg": "^7.8.0",
     "pg-connection-string": "~2.0.0",
-    "shortid": "~2.2.13",
     "supertest": "^3.3.0",
     "supervisor": "~0.12.0",
-    "tape": "^4.9.1",
+    "tape": "^4.9.1"
   },
   "devDependencies": {}
 }

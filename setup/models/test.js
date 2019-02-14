@@ -62,6 +62,7 @@ var fields = [
 		"type": "lov",
 		"label": "Parent",
 		"object": "test",
+		"lovtable": "z_test",  // needed for naxl
 		"required": true,
 		"inMany": true,
 		"width": 100,
