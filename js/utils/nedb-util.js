@@ -12,7 +12,7 @@ const dbpath = './nedb-data/',
     tables_name = 'table'
 
 module.exports = {
-    getDb, ungetDb, lookupDict, prepareAdd, writeTable, promiseModel, addLookups, addCollections
+    getDb, ungetDb, lookupDict, prepareAdd, writeTable, promiseModel, addLookups, addCollections, sendError
 }
 
 // cache for db handles
@@ -21,6 +21,7 @@ let dbCache = {}
 // get db store for entity
 // cache and reuse db handle
 function getDb(name) {
+    if (!name) throw `null database name`
     if (dbCache[name]) {
         dbCache[name].use++
         return dbCache[name].db
@@ -32,6 +33,7 @@ function getDb(name) {
 }
 
 function ungetDb(name) {
+    if (!name) throw `null database name`
     if (--dbCache[name].use <= 0) 
         delete dbCache[name]
 }
@@ -45,6 +47,12 @@ function lookupDict(lookup, cb) {
     return dict
 }
 
+// return a bad request error and clear db handle cache
+function sendError(res, msg) {
+    dbCache = {}
+    errors.badRequest(res, msg)
+}
+
 // _id is the required key, always an integer, use id if possible
 // id is the required user-visible key, same as _id if missing
 function prepareAdd(data, id) {
@@ -56,6 +64,7 @@ function prepareAdd(data, id) {
 
 // write set of rows as table
 function writeTable(name, data, cbok, cberr) {
+    if (!name) return cberr('null database name')
     console.log('Writing', name, 'rows', data.length);
     var db = getDb(name)
     db.remove({}, { multi: true }, (err, num) => {

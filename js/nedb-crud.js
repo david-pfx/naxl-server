@@ -8,7 +8,7 @@ const dico = require('./utils/dico'),
     errors = require('./utils/errors'),
     logger = require('./utils/logger'),
     config = require('../config'),
-    { getDb, ungetDb, prepareAdd, promiseModel, addLookups, addCollections, lookupDict } = require('./utils/nedb-util')
+    { getDb, ungetDb, prepareAdd, promiseModel, addLookups, addCollections, lookupDict, sendError } = require('./utils/nedb-util')
 
 const ft = dico.fieldTypes
 
@@ -48,12 +48,6 @@ function getField(model, name) {
     let field = model.fields.find(f => f.id == name)
     if (!field) return { error: 'Invalid field: "' + name + '".' }
     return field
-}
-
-// return a bad request error and clear db handle cache
-function sendError(res, msg) {
-    dbCache = {}
-    errors.badRequest(res, msg)
 }
 
 // parse somefield.asc, into { somefield: 1, }

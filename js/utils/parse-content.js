@@ -44,7 +44,7 @@ module.exports = {
         let titleCase = str => str.replace(/\b\w+/g, s => s.charAt(0).toUpperCase() + s.substr(1).toLowerCase() )
 
         // get rid of known extension
-        let name = filename.replace(/[.]csv$/i, '')
+        let barename = filename.replace(/[.]csv$/i, '')
         // create fields from CSV row
         let fields = Object.keys(row).map(k => {
             return {
@@ -55,13 +55,14 @@ module.exports = {
             }
         })
         return result = {
-            ident: name.toLowerCase(),
+            ident: barename.toLowerCase(),
             active: true,  // set later?
-            label: titleCase(name),
+            label: titleCase(barename),
             kind: 1,
-            titleField: titleCase(name),
-            name: name.toLowerCase(),
-            namePlural: name.toLowerCase() + 's',
+            titleField: titleCase(barename),
+            name: barename.toLowerCase(),
+            namePlural: barename.toLowerCase() + 's',
+            table: barename,
             source: filename,
             description: `Created by uploading ${filename}`,
             fields: fields

@@ -141,7 +141,7 @@ function specialTests(enableLogging) {
 
         //return
         let fieldrows = tablerow.fields.map(f => ({ ...f, table_id: tableid }))
-        logger.log(fieldrows)
+        logger.log('fieldrows', fieldrows.length)
         runtest.PostOk('fields insert', '/api/v1/field/', fieldrows, (res, t) => {
             t.equal(res.body.length, 12, 'rows returned')
             let row0 = res.body[0]

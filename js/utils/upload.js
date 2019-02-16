@@ -14,8 +14,7 @@ const path = require('path'),
     ft = dico.fieldTypes,
     logger = require('./logger'),
     config = require('../../config.js'),
-    { sendError } = require('../nedb-crud'),
-    { promiseModel, writeTable } = require('./nedb-util'),
+    { promiseModel, writeTable, sendError } = require('./nedb-util'),
     parseContent = require('./parse-content')
 
 module.exports = {  
@@ -56,7 +55,7 @@ module.exports = {
                     logger.logSuccess('New file name: "'+originalName+'" -> "'+fname+'".')
                 }
                 fs.rename(file.path, ffname, function (err) {
-                    if (err) throw err;
+                    if (err) return sendError(res, err);
                 });
             })
             .on('end', function(){
@@ -71,18 +70,20 @@ module.exports = {
                 if (field && field.type === ft.content) {
                     parseContent.parseCsv(ffname, 
                         data => {
+                            //logger.log('csv', data);
                             // this is the table row which the uses sees and may save
                             result.newdata = parseContent.createModel(originalName, data[0])
                             // this is the database file, for if the user saves
                             writeTable(result.newdata.table, data, 
                                 count => { 
+                                    logger.log('csv', count);
                                     result.count = count
                                     res.json(result) 
                                 },
-                                err => { throw err }
+                                err => { return sendError(res, err) }
                             )
                         },
-                        err => { throw err }
+                        err => { return sendError(res, err) }
                     )
                 } else res.json(result);
             })
