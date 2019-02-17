@@ -7,7 +7,7 @@ module.exports = {
     name: 'field',
     namePlural: 'fields',
     active: true,
-    label: 'Field master',
+    label: '$ Field Master',
     table: 'field',
     fields: [
         {

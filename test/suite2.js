@@ -2,7 +2,7 @@
 
 var runtest = require('./common')
 
-// tests start here
+
 runtest.GetOk('version', '/api/v1/version', (res, t) => {
     const pkg = require('../package.json')
     t.same(res.body, { name: pkg.name, version: pkg.version }, 'check body')
@@ -122,6 +122,7 @@ runtest.GetOk('todo order title desc', '/api/v1/todo?order=title.desc', (res, t)
     t.equal(row0.title, 'Watch Inception', 'first item')
 })
 
+// CHART
 runtest.GetOk('todo chart', '/api/v1/todo/chart/category', (res, t) => {
     t.equal(res.body.length, 5, 'rows returned')
     let row0 = res.body[0]
@@ -154,6 +155,7 @@ runtest.GetOk('todo chart complete', '/api/v1/todo/chart/complete', (res, t) => 
     let row0 = res.body[0]
 })
 
+// STATS
 runtest.GetOk('wine stats', '/api/v1/winecellar/stats', (res, t) => {
     let row0 = res.body
     t.equal(row0.price_min, 20, 'price min')
@@ -161,3 +163,44 @@ runtest.GetOk('wine stats', '/api/v1/winecellar/stats', (res, t) => {
     t.equal(row0.price_sum, 543, 'price sum')
     t.equal(row0.price_avg, 108.6, 'price avg')
 })
+
+// JOIN ALL
+runtest.GetOk('wines join all', '/api/v1/winecellar?join=all', (res, t) => {
+    t.equal(res.body.length, 5, 'rows returned')
+    let row0 = res.body[0]
+    //logger.log(row0)
+    t.equal(row0.id, 5, 'first item id')
+    t.equal(row0.wine_tasting.length, 3, 'collec length')
+    t.equal(row0.wine_tasting[0].id, 11, 'first child')
+    t.equal(row0.wine_tasting[0].wine_id, 5, 'first child parent')
+})
+
+runtest.GetOk('table list join all', '/api/v1/table?join=all', (res, t) => {
+    t.equal(res.body.length, 9, 'rows returned')
+    let row0 = res.body[0]
+    //logger.log(row0)
+    t.equal(row0.id, 5, 'first item id')
+    t.equal(row0.ident, 'comics', 'first item entity')
+    t.equal(row0.groups.length, 2, 'first item groups')
+    t.equal(row0.fields.length, 11, 'first item fields')
+})
+
+runtest.GetOk('table 5 join all', '/api/v1/table/5?join=all', (res, t) => {
+    let row0 = res.body
+    //logger.log(row0)
+    t.equal(row0.id, 5, 'item id')
+    t.equal(row0.ident, 'comics', 'item entity')
+    t.equal(row0.groups.length, 2, 'item groups')
+    t.equal(row0.fields.length, 11, 'item fields')
+})
+
+// PAGING
+runtest.GetOk('todo list', '/api/v1/todo?pageSize=10', (res, t) => {
+    t.equal(res.body.length, 10, 'rows returned')
+})
+
+runtest.GetOk('todo list', '/api/v1/todo?page=2&pageSize=8', (res, t) => {
+    t.equal(res.body.length, 5, 'rows returned')
+})
+
+

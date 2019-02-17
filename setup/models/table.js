@@ -4,7 +4,7 @@ module.exports = {
     id: 'table',
     name: 'table',
     namePlural: 'tables',
-    label: 'Master table',
+    label: '$ Table Master',
     icon: 'table.gif',
     titleField: 'label',
     description: 'Contains an entry for every entity or values table', 

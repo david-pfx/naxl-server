@@ -13,7 +13,8 @@ const dico = require('./utils/dico'),
 const ft = dico.fieldTypes
 
 // - build the header row for CSV export
-const csvHeaderColumn = config.csvHeader || 'label'
+const csvHeaderColumn = config.csvHeader || 'label',
+    defaultPageSize = config.pageSize || 50
 
 function fieldId(f){
     return (csvHeaderColumn === 'label') ? f.label || f.id : f.id
@@ -198,6 +199,8 @@ function getMany(req, res) {
 
     const entity = req.params.entity,
         format = req.query.format || null,
+        page = req.query.page || 0,     // page number is 0-based
+        pagesize = req.query.pageSize || defaultPageSize,
         order = req.query.order || null,
         join = req.query.join || null
 
@@ -205,7 +208,7 @@ function getMany(req, res) {
     .then(model => {
         let table = model.table || entity,
             orderby = orderBy(model, order)
-        logger.log('get all', table, 'order by', orderby, 'join', join)
+        logger.log('get all', table, 'pagesize', pagesize, 'order by', orderby, 'join', join)
         
         let csvheader = (format==='csv') ? csvHeader(model.fields) : null,
             db = getDb(table),
@@ -216,7 +219,7 @@ function getMany(req, res) {
             total_count = n
         })
         // TODO: make sort case-insensitive
-        db.find({ }).sort(orderby).exec((err, docs) => {
+        db.find({ }).sort(orderby).skip(pagesize*page).limit(pagesize).exec((err, docs) => {
             if (err) return sendError(res, 'db error: ' + err)
             addResultLookups(res, docs, { 
                     csv: csvheader , single: false, count: total_count 
