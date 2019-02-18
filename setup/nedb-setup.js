@@ -7,7 +7,7 @@
 var nedb = require('nedb')
 
 var models = require('./models/all_models'),
-    modelsdata = require('./data/all_modelsdata'),
+    modelsdata = require('./data/all_data'),
     dico = require('../js/utils/dico')
 const dbpath = './nedb-data/'
     
