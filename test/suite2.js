@@ -37,10 +37,10 @@ runtest.GetOk('todo item', '/api/v1/todo/20', (res, t) => {
 })
 
 runtest.GetOk('contact list', '/api/v1/contact', (res, t) => {
-    t.equal(res.body.length, 11, 'rows returned')
+    t.equal(res.body.length, 50, 'rows returned')
     let row0 = res.body[0]
-    t.equal(row0.id, 12, 'first item id')
-    t.equal(row0.lastname, 'Cheng', 'first item first column')
+    t.equal(row0.id, 72, 'first item id')
+    t.equal(row0.lastname, 'Abdallah', 'first item first column')
 })
 
 runtest.GetOk('contact item', '/api/v1/contact/11', (res, t) => {

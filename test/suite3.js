@@ -28,7 +28,7 @@ runtest.FormOk('upload image', '/api/v1/test/upload/0?field=image', 'filename', 
     let result = res.body
     t.false(result.dup)
     t.equal(result.fileName, 'testing.png')
-    t.equal(result.id, '0')
+    t.equal(result.id, 0)
     t.equal(result.model, 'test')
 })
 
@@ -36,17 +36,17 @@ runtest.FormOk('upload document', '/api/v1/test/upload/0?field=document', 'filen
     let result = res.body
     t.false(result.dup)
     t.equal(result.fileName, 'testfile100.txt')
-    t.equal(result.id, '0')
+    t.equal(result.id, 0)
     t.equal(result.model, 'test')
 })
 
 // UPLOAD CSV
 runtest.FormOk('upload CSV', '/api/v1/test/upload/2?field=content', 'filename', './test/member.csv', (res, t) => {
-    //logger.log(res.body)
+    logger.log(res.body)
     let result = res.body
     t.false(result.dup, 'dup')
     t.equal(result.fileName, 'member.csv','filename')
-    t.equal(result.id, '2', 'id')
+    t.equal(result.id, 2, 'id')
     t.equal(result.model, 'test', 'model')
     t.assert(result.newdata, 'new data')
     t.equal(result.newdata.ident, 'member', 'new id')
@@ -72,6 +72,9 @@ runtest.FormOk('upload CSV', '/api/v1/test/upload/2?field=content', 'filename', 
         t.equal(res.body.length, 20, 'rows returned')
         let row0 = res.body[0]
         logger.log(row0)
+        t.equal(row0.id, 1, 'member id')
+        t.equal(row0.Recnum, 1, 'member recnum')
+        t.equal(row0.Surname, 'BOTWINNIK', 'member surname')
     })
 })
 

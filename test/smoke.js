@@ -85,11 +85,4 @@ function specialTests(enableLogging) {
         //logger.log(row0)
     })
 
-    // let data = { entity: "member", kind: 1, source: 'table/member.csv' }
-    // runtest.PostOk('todo insert', '/api/v1/table/', data, (res, t) => {
-    //     //t.equal(res.body.length, 1, 'rows returned')
-    //     let result = res.body
-    //     logger.log(result)
-    // })
-
 }

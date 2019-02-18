@@ -24,7 +24,7 @@ module.exports = {
         logger.logReq('UPLOAD ONE', req);
 
         const entity = req.params.entity,
-            id = req.params.id,
+            id = +req.params.id,
             fieldid = req.query.field,
             form = new formidable.IncomingForm()
 

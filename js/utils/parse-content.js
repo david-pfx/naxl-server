@@ -3,7 +3,7 @@
 // (c) 2019 David Bennett
 
 let fs = require('fs'),
-    parse = require('csv-parser')
+    parse = require('csv-parse')
 
 let { fieldTypes } = require('./dico')
 
@@ -20,7 +20,7 @@ module.exports = {
         if (!input) return cberr(`cannot open ${filePath}`)
         let parser = parse({
             columns: true,
-            to: 10,
+            cast: true,
         })
         let output = []
         input.pipe(parser)
