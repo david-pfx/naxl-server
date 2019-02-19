@@ -4,16 +4,18 @@
 // https://github.com/evoluteur/evolutility-ui-react
 // (c) 2018 David Bennett
 
-var nedb = require('nedb')
+let nedb = require('nedb'),
+    fs = require('fs')
 
-var models = require('./models/all_models'),
+let models = require('./models/all_models'),
     modelsdata = require('./data/all_data'),
     dico = require('../js/utils/dico')
 const dbpath = './nedb-data/'
     
 // set this true to create a separate fields table
 // also uncomment entries in models and data
-const hasfieldtable = true
+const hasfieldtable = true,
+    deleteall = true
 
 let dbs = {},
     tables = [], 
@@ -22,6 +24,12 @@ let dbs = {},
 main()
 
 function main() {
+    if (deleteall) {
+        let regex = /[.]db$/
+        fs.readdirSync(dbpath)
+            .filter(f => regex.test(f))
+            .map(f => fs.unlinkSync(dbpath + f))
+    }
     let nofields = (({ fields, ...others }) => ({ ...others })) //!!!
     for (let entity in modelsdata) {
         let model = models[entity]
