@@ -12,6 +12,20 @@ function logall(...args) {
     console.log(...args)
 }
 
+function peekType(value) {
+    let retable = [
+        { regex: /^(-|\+)?(\d+)$/, type: fieldTypes.int },
+        { regex: /^(-|\+)?(\d+[.]\d*|[.]\d+)$/, type: fieldTypes.dec },
+        { regex: /^(-|\+)?[$](\d+|\d+[.]\d*|[.]\d+)$/, type: fieldTypes.money },
+        { regex: /^\d\d\d\d-\d\d-\d\d/, type: fieldTypes.date },
+        { regex: /^\d\d\d\d\/\d\d\/\d\d/, type: fieldTypes.date },
+        { regex: /\n/, type: fieldTypes.textml },
+        { regex: /.*/, type: fieldTypes.text },
+    ]
+    let match = retable.find(t => t.regex.test(value))
+    return match.type
+}
+
 module.exports = {
     // get a single item
     parseCsv: function(filePath, cbok, cberr) {
@@ -49,7 +63,8 @@ module.exports = {
         let fields = Object.keys(row).map(k => {
             return {
                 ident: k,
-                type: fieldTypes.text,
+                type: peekType(row[k]),
+                //type: fieldTypes.text,
                 label: titleCase(k),
                 inMany: true,
             }

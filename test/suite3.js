@@ -40,41 +40,42 @@ runtest.FormOk('upload document', '/api/v1/test/upload/0?field=document', 'filen
     t.equal(result.model, 'test')
 })
 
-// UPLOAD CSV
-runtest.FormOk('upload CSV', '/api/v1/test/upload/2?field=content', 'filename', './test/member.csv', (res, t) => {
-    logger.log(res.body)
-    let result = res.body
-    t.false(result.dup, 'dup')
-    t.equal(result.fileName, 'member.csv','filename')
-    t.equal(result.id, 2, 'id')
-    t.equal(result.model, 'test', 'model')
-    t.assert(result.newdata, 'new data')
-    t.equal(result.newdata.ident, 'member', 'new id')
-    t.equal(result.newdata.label, 'Member', 'new label')
-
-    let tablerow = { ...result.newdata, description: 'Added by smoke test'}
-    let tableid = 10
-    runtest.PostOk('table insert', '/api/v1/table/', tablerow, (res, t) => {
-        let row0 = res.body
-        t.equal(row0.id, tableid, 'id added')
+    // UPLOAD CSV
+    runtest.FormOk('upload CSV', '/api/v1/test/upload/2?field=content', 'filename', './test/member.csv', (res, t) => {
+        logger.log(res.body)
+        let result = res.body
+        t.false(result.dup, 'dup')
+        t.equal(result.fileName, 'member.csv','filename')
+        t.equal(result.id, 2, 'id')
+        t.equal(result.model, 'test', 'model')
+        t.assert(result.newdata, 'new data')
+        t.equal(result.newdata.ident, 'member', 'new id')
+        t.equal(result.newdata.label, 'Member', 'new label')
+    
+        let tablerow = { ...result.newdata, description: 'Added by smoke test'}
+        let tableid = 10
+        runtest.PostOk('table insert', '/api/v1/table/', tablerow, (res, t) => {
+            let row0 = res.body
+            t.equal(row0.id, tableid, 'id added')
+        })
+    
+        //return
+        let fieldrows = tablerow.fields.map(f => ({ ...f, table_id: tableid }))
+        logger.log('fieldrows', fieldrows.length)
+        runtest.PostOk('fields insert', '/api/v1/field/', fieldrows, (res, t) => {
+            t.equal(res.body.length, 11, 'rows returned')
+            let row0 = res.body[0]
+            t.equal(row0.id, 118, 'field id added')
+        })
+    
+        runtest.GetOk('get member', '/api/v1/member', (res, t) => {
+            t.equal(res.body.length, 20, 'rows returned')
+            let row0 = res.body[0]
+            logger.log(row0)
+            t.equal(row0.id, 1, 'member id')
+            t.equal(row0.No, 1, 'member no')
+            t.equal(row0.Surname, 'BOTWINNIK', 'member surname')
+        })
     })
-
-    //return
-    let fieldrows = tablerow.fields.map(f => ({ ...f, table_id: tableid }))
-    logger.log('fieldrows', fieldrows.length)
-    runtest.PostOk('fields insert', '/api/v1/field/', fieldrows, (res, t) => {
-        t.equal(res.body.length, 12, 'rows returned')
-        let row0 = res.body[0]
-        t.equal(row0.id, 118, 'field id added')
-    })
-
-    runtest.GetOk('get member', '/api/v1/member', (res, t) => {
-        t.equal(res.body.length, 20, 'rows returned')
-        let row0 = res.body[0]
-        logger.log(row0)
-        t.equal(row0.id, 1, 'member id')
-        t.equal(row0.Recnum, 1, 'member recnum')
-        t.equal(row0.Surname, 'BOTWINNIK', 'member surname')
-    })
-})
-
+    
+    
