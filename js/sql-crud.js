@@ -421,8 +421,9 @@ function collecOne(req, res) {
 
     if(m && collec){
         const sqlParams = [pId],
-            sql = 'SELECT t1.id, '+sqls.select(collec.fields)+
+            sql = 'SELECT t1.id, '+sqls.select(collec.fields, null, 't1')+
                 ' FROM '+schema+'."'+collec.table+'" AS t1'+
+                    sqls.sqlFromLOVs(collec.fields, schema)+
                 ' WHERE t1."'+collec.column+'"=$1'+
                 ' ORDER BY t1.id'+//t1.position, t1.id
                 ' LIMIT '+defaultPageSize+';';
