@@ -53,7 +53,7 @@ runtest.FormOk('upload document', '/api/v1/test/upload/0?field=document', 'filen
         t.equal(result.newdata.label, 'Member', 'new label')
     
         let tablerow = { ...result.newdata, description: 'Added by smoke test'}
-        let tableid = 10
+        let tableid = 13
         runtest.PostOk('table insert', '/api/v1/table/', tablerow, (res, t) => {
             let row0 = res.body
             t.equal(row0.id, tableid, 'id added')
@@ -65,7 +65,7 @@ runtest.FormOk('upload document', '/api/v1/test/upload/0?field=document', 'filen
         runtest.PostOk('fields insert', '/api/v1/field/', fieldrows, (res, t) => {
             t.equal(res.body.length, 11, 'rows returned')
             let row0 = res.body[0]
-            t.equal(row0.id, 118, 'field id added')
+            t.equal(row0.id, 134, 'field id added')
         })
     
         runtest.GetOk('get member', '/api/v1/member', (res, t) => {

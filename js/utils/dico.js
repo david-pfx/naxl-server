@@ -138,11 +138,11 @@ function prepModel(m){
 				m.collecsH = {}
 				m.collections.forEach(c => {
 					m.collecsH[c.id] = c
-					c.fields.forEach((f, idx) => {
-						if(f.type==='lov'){
-							f.t2 = 't_'+idx
-						}
-					})
+					// c.fields.forEach((f, idx) => {
+					// 	if(f.type==='lov'){
+					// 		f.t2 = 't_'+idx
+					// 	}
+					// })
 				})
 			}
 			if(!m.pkey){

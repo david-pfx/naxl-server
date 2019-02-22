@@ -10,4 +10,7 @@ module.exports = {
 	winetasting: require('./winetasting.data'),
 	restaurant: require('./restaurant.data'),
 	test: require('./test.data'),
+	album: require('./album-data'),
+	artist: require('./artist-data'),
+	track: require('./track-data'),
 };

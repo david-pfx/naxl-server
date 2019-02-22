@@ -12,9 +12,9 @@ runtest.GetOk('info', '/api/v1//', (res, t) => {
 })
 
 runtest.GetOk('table list', '/api/v1/table', (res, t) => {
-    t.equal(res.body.length, 9, 'rows returned')
+    t.equal(res.body.length, 12, 'rows returned')
     let row0 = res.body[0]
-    t.equal(row0._full_count, 9, 'full count')
+    t.equal(row0._full_count, 12, 'full count')
     //t.equal(row0.label, 'Address Book', 'first item')  // TODO
 })
 
@@ -176,13 +176,13 @@ runtest.GetOk('wines join all', '/api/v1/winecellar?join=all', (res, t) => {
 })
 
 runtest.GetOk('table list join all', '/api/v1/table?join=all', (res, t) => {
-    t.equal(res.body.length, 9, 'rows returned')
+    t.equal(res.body.length, 12, 'rows returned')
     let row0 = res.body[0]
     //logger.log(row0)
-    t.equal(row0.id, 5, 'first item id')
-    t.equal(row0.ident, 'comics', 'first item entity')
+    t.equal(row0.id, 10, 'first item id')
+    t.equal(row0.ident, 'album', 'first item entity')
     t.equal(row0.groups.length, 2, 'first item groups')
-    t.equal(row0.fields.length, 11, 'first item fields')
+    t.equal(row0.fields.length, 5, 'first item fields')
 })
 
 runtest.GetOk('table 5 join all', '/api/v1/table/5?join=all', (res, t) => {
@@ -191,7 +191,7 @@ runtest.GetOk('table 5 join all', '/api/v1/table/5?join=all', (res, t) => {
     t.equal(row0.id, 5, 'item id')
     t.equal(row0.ident, 'comics', 'item entity')
     t.equal(row0.groups.length, 2, 'item groups')
-    t.equal(row0.fields.length, 11, 'item fields')
+    t.equal(row0.fields.length, 13, 'item fields')
 })
 
 // PAGING

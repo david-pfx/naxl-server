@@ -12,5 +12,8 @@ module.exports = {
     restaurant: require('./restaurant'),
     winecellar: require('./winecellar'),
     winetasting: require('./winetasting'),
+    album: require('./album'),
+    artist: require('./artist'),
+    track: require('./track'),
     test: require('./test'),
 }

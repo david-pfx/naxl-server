@@ -73,15 +73,27 @@ module.exports = {
           label: 'Finished'
       },
       {
-          id: 'pix', type: 'image', 
-          width: 30, inMany: true,
-          label: 'Cover'
-      },
-      {
-          id: 'notes', type: 'textmultiline', 
-          label: 'Notes', maxLength: 1000,
-          width: 100, height: 7, inMany: false
-      }
+			"id": "url_bdfugue",
+			"type": "url",
+			"width": 62,
+			"label": "BDFugue",
+		},
+		{
+			"id": "url_amazon",
+			"type": "url",
+			"width": 38,
+			"label": "Amazon",
+		},
+        {
+            id: 'notes', type: 'textmultiline', 
+            label: 'Notes', maxLength: 1000,
+            width: 100, height: 7, inMany: false
+        },
+        {
+            id: 'pix', type: 'image', 
+            width: 30, inMany: true,
+            label: 'Cover'
+        },
   ],
 
   groups: [
@@ -89,7 +101,7 @@ module.exports = {
           id:'serie', type: 'panel', label: 'Serie', width: 70,
           fields: ['title', 'authors', 'genre', 
                 'serie_nb', 'have_nb', 'have', 
-                'language', 'complete', 'finished', 'notes']
+                'language', 'complete', 'finished', 'url_bdfugue', 'url_amazon', 'notes']
         },
         { 
           id:'pix', type: 'panel', label: 'Album Cover', width: 30,

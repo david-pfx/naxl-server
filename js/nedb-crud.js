@@ -208,7 +208,7 @@ function getMany(req, res) {
     .then(model => {
         let table = model.table || entity,
             orderby = orderBy(model, order)
-        logger.log('get all', table, 'pagesize', pagesize, 'order by', orderby, 'join', join)
+        logger.log('get many', table, 'pagesize', pagesize, 'order by', orderby, 'join', join)
         
         let csvheader = (format==='csv') ? csvHeader(model.fields) : null,
             db = getDb(table),
@@ -366,14 +366,15 @@ function lovOne(req, res) {
     .then(model => {
         let field = model.fields.find(f => { return f.id === fid })
         if (!field) return sendError(res, 'Unknown field: ' + fid)
-        logger.log('get all', field.lovtable)
+        let lovtable = field.lovtable || field.object
+        logger.log('get all', lovtable)
 
         if (field.list) {
             sendResult(res, field.list, { })
         } else {
-            let db = getDb(field.lovtable)
+            let db = getDb(lovtable)
             db.find({ }, (err, docs) => {
-                ungetDb(field.lovtable)
+                ungetDb(lovtable)
                 if (err) sendError(res, 'db error: ' + err)
                 else sendResult(res, docs, { })
             })
@@ -443,9 +444,10 @@ function chartField(req, res) {
                     let results = groupResult(docs, field, lookup);
                     sendResult(res, results, { })
                 } else {
-                    let db2 = getDb(field.lovtable)
+                    let lovtable = field.lovtable || field.object
+                    let db2 = getDb(lovtable)
                     db2.find({ }, (err, lov) => {
-                        ungetDb(field.lovtable)
+                        ungetDb(lovtable)
                         if (err) return sendError(res, 'db error: ' + err)
                         let lookup = lookupDict(lov, r => r.name || r.text)
                         let results = groupResult(docs, field, lookup);

@@ -121,8 +121,8 @@ function addLookups(results, fields, resolve, reject) {
     if (field.list) {
         addLookup(results, field.list, field.id)
         addLookups(results, fields.slice(1), resolve, reject)
-    } else if (field.lovtable) {
-        let lovtable = field.lovtable
+    } else if (field.lovtable || field.object) {
+        let lovtable = field.lovtable || field.object
         logger.log('add lookup', lovtable, field.id)
         let db = getDb(lovtable)
         db.find({ }, (err, docs) => {
