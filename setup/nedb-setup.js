@@ -34,12 +34,13 @@ function main() {
     for (let entity in modelsdata) {
         let model = models[entity]
         let tablename = model.table || entity
+        let label = model.label || model.name || entity
         writeTable(tablename, modelsdata[entity])
         if (hasfieldtable) {
-            addTable(nofields(model), 'entity', `Sample data for ${model.label}`)
+            addTable(nofields(model), 'entity', `Sample data for ${label}`)
             addFields(model, tables.length)
         } else
-            addTable(model, 'entity', `Sample data for ${model.label}`)
+            addTable(model, 'entity', `Sample data for ${label}`)
     }
     rewriteTable('table', tables)
     if (hasfieldtable)

@@ -10,6 +10,7 @@ module.exports = {
 	"namePlural": "albums",
     "icon": "cd.png",
 	"titleField": "name",
+	"table": "music_album",
 	"fields": [
 		{
 			"id": "title",
@@ -33,7 +34,9 @@ module.exports = {
 			"required": true,
 			"inMany": true,
 			"width": 38,
-			"height": 1
+			"height": 1,
+			"lovtable": "music_artist",
+			"lovcolumn": "name"
 		},
 		{
 			"id": "description",
@@ -78,8 +81,10 @@ module.exports = {
 	"collections": [
 		{
 			"id": "music_track",
-			"title": "Tracks",
+			"table": "music_track",
+			"column": "album_id",
 			"object": "track",
+			"order": "name",
 			"fields": [
 				{
 					"id": "name",

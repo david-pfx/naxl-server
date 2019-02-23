@@ -10,6 +10,7 @@ module.exports = {
 	"namePlural": "tracks",
     "icon": "music.png",
 	"titleField": "name",
+	"table": "music_track",
 	"fields": [
 		{
 			"id": "name",
@@ -27,7 +28,9 @@ module.exports = {
 			"object": "album",
 			"inMany": true,
 			"width": 100,
-			"height": 1
+			"height": 1,
+			"lovtable": "music_album",
+			"lovcolumn": "title"
 		},
 		{
 			"id": "length",

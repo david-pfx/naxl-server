@@ -10,6 +10,7 @@ module.exports = {
 	"namePlural": "artists",
     "icon": "star.png",
 	"titleField": "name",
+	"table": "music_artist",
 	"fields": [
 		{
 			"id": "name",
@@ -69,6 +70,9 @@ module.exports = {
 			"id": "music_album",
 			"title": "Albums",
 			"object": "album",
+			"table": "music_album",
+			"column": "artist_id",
+			"order": "title",
 			"fields": [
 				{
 					"id": "title",
