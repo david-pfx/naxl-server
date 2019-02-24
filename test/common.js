@@ -15,6 +15,13 @@ module.exports = {
         })
     },
 
+    direct: function(name, testfun) {
+        test(`-------- ${name} --------`, t => {
+            testfun(t)
+            t.end()
+        })
+    },
+
     GetOk: function(name, api, testfun) {
         test(`======== ${name} === ${api} ========`, t => {
             request(app)

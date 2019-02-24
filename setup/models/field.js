@@ -48,7 +48,7 @@ module.exports = {
         },
 		{
 			id: "table_id", type: "lov",
-			entity: "table",
+			object: "table",
 			lovtable: "table",
 			label: "Table",
 			inMany: true,

@@ -82,7 +82,8 @@ module.exports = {
 		{
 			"id": "music_track",
 			"table": "music_track",
-			"column": "album_id",
+			"column": "album",
+			//"column": "album_id",
 			"object": "track",
 			"order": "name",
 			"fields": [

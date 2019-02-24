@@ -31,7 +31,7 @@ module.exports = {
             required: true
         },
         { 
-            id: 'wine_id', entity: 'winecellar', column: 'wine_id', type: 'lov', 
+            id: 'wine_id', object: 'winecellar', column: 'wine_id', type: 'lov', 
             lovtable: 'wine',  // table on which to do lookup (avoid need for looking across models)
             label: 'Wine', inMany: true,
             width: 62,

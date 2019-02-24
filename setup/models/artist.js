@@ -71,7 +71,8 @@ module.exports = {
 			"title": "Albums",
 			"object": "album",
 			"table": "music_album",
-			"column": "artist_id",
+			"column": "artist",
+			//"column": "artist_id",
 			"order": "title",
 			"fields": [
 				{

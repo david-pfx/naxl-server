@@ -135,7 +135,7 @@ module.exports = {
             title: 'Content fields',
             table: 'field',
             column: 'table_id',
-            entity: 'field',
+            object: 'field',
         }
     ],
 };
